@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '../context/AuthContext'
 import LoginPage from '../pages/auth/LoginPage'
+import RegisterPage from '../pages/auth/RegisterPage'
 import PublisherLayout from '../layouts/PublisherLayout'
 
 // Halaman placeholder sementara
@@ -30,6 +31,7 @@ export default function AppRouter() {
         <Routes>
           {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
           {/* User routes */}
           <Route path="/" element={<HomePage />} />
