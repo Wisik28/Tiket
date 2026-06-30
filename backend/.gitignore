@@ -1,0 +1,8 @@
+node_modules/
+.env
+vendor/
+storage/logs/*
+storage/uploads/*
+!storage/logs/.gitkeep
+!storage/uploads/.gitkeep
+composer.lock
