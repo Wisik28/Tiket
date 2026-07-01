@@ -42,8 +42,8 @@ export default function LoginPage() {
       // Redirect berdasarkan role yang dikembalikan dari backend
       if (userData.role === 'publisher') {
         navigate('/publisher/dashboard', { replace: true })
-      } else {
-        navigate('/', { replace: true })
+      } else if (userData.role === 'user'){
+        navigate('/user/dashboard', { replace: true })
       }
     } catch (error) {
       const message =

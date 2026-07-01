@@ -4,6 +4,7 @@ import { AuthProvider } from '../context/AuthContext'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
 import PublisherLayout from '../layouts/PublisherLayout'
+import PublisherPage from '../pages/publisher/Dashboard'
 
 // Halaman placeholder sementara
 function HomePage() {
@@ -11,15 +12,6 @@ function HomePage() {
     <div style={{ padding: '2rem', textAlign: 'center' }}>
       <h1>Selamat Datang di EventTicket</h1>
       <p>Halaman utama untuk user</p>
-    </div>
-  )
-}
-
-function PublisherDashboard() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-800">Dashboard Publisher</h1>
-      <p className="text-gray-600 mt-2">Selamat datang di dashboard publisher Anda.</p>
     </div>
   )
 }
@@ -38,7 +30,8 @@ export default function AppRouter() {
 
           {/* Publisher routes */}
           <Route path="/publisher" element={<PublisherLayout />}>
-            <Route path="dashboard" element={<PublisherDashboard />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<PublisherPage />} />
           </Route>
 
           {/* Fallback */}
