@@ -1,7 +1,5 @@
 @import './LoginPage.css';
 
-/* --- Register Page Specific Styles - Light Minimalist --- */
-
 .register-container {
   max-width: 480px; /* Slightly wider for the registration inputs */
 }
