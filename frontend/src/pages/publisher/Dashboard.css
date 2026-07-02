@@ -368,11 +368,11 @@
   color: #fff;
 }
 
-.pd-filter-btn__dot {
+/* .pd-filter-btn__dot {
   width: 7px; height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
-}
+} */
 .pd-filter-btn--active .pd-filter-btn__dot { background: rgba(255,255,255,.6); }
 
 /* ── LOADING ──────────────────────────────────────────────────────── */

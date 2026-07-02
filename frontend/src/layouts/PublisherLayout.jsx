@@ -1,5 +1,6 @@
 import React from 'react'
-import { Outlet, Link, useNavigate } from 'react-router-dom'
+// import { Outlet, Link, useNavigate } from 'react-router-dom'
+import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 
 export default function PublisherLayout() {
@@ -20,22 +21,39 @@ export default function PublisherLayout() {
             Organizer
           </Link>
           <nav className="mt-8 space-y-2">
-            <Link to="/publisher/dashboard" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Dashboard
-            </Link>
-            {/* <Link to="/publisher/events" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Kelola Acara
-            </Link> */}
-            {/* <Link to="/publisher/events/create" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Buat Acara
-            </Link> */}
-            <Link to="/publisher/orders" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Daftar Pesanan
-            </Link>
-            <Link to="/publisher/profile" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Profil Publisher
-            </Link>
+            {/* /publisher/dashboard - harus sesuai dengan apa yang ada di AppRouter.jsx */}
+            {/* pakai NavLink agar muncul tampilan yang berbeda, kalau cuma pakai Nav saja tidak bisa */}
+            <NavLink
+              to="/publisher/dashboard"
+              className={({ isActive }) =>
+                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+            } >Dashboard</NavLink>
+
+            <NavLink
+              to="/publisher/coba"
+              className={({ isActive }) =>
+                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+            } >Coba </NavLink>
+
+            <NavLink
+              to="/publisher/cobalagi"
+              className={({ isActive }) =>
+                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+            } >Coba Lagi </NavLink>
+
+            <NavLink
+              to="/publisher/orders"
+              className={({ isActive }) =>
+                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+            } >Daftar Pesanan </NavLink>
+
+            <NavLink
+              to="/publisher/profile"
+              className={({ isActive }) =>
+                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+            } >Profil Publisher </NavLink>
           </nav>
+
         </div>
         <div className="p-6 border-t border-indigo-800 flex items-center justify-between">
           <div className="truncate pr-2">

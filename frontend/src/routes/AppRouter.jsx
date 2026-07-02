@@ -7,6 +7,11 @@ import PublisherLayout from '../layouts/PublisherLayout'
 import PublisherPage from '../pages/publisher/Dashboard'
 import CreateEventPage from '../pages/publisher/CreateEvent'
 import UpdateEventPage from '../pages/publisher/UpdateEvent'
+import ProfilePage from '../pages/publisher/Profile'
+import DaftarPesananPage from '../pages/publisher/DaftarPesanan'
+// cuma coba aja
+import CobaPage from '../pages/publisher/Coba'
+import CobaLagiPage from '../pages/publisher/CobaLagi'
 
 // Halaman placeholder sementara
 function HomePage() {
@@ -23,19 +28,23 @@ export default function AppRouter() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Auth routes */}
+          {/* Routing autentikasi */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* User routes */}
+          {/* Routing user */}
           <Route path="/" element={<HomePage />} />
 
-          {/* Publisher routes */}
+          {/* Routing publisher */}
           <Route path="/publisher" element={<PublisherLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<PublisherPage />} />
             <Route path="events/create" element={<CreateEventPage />} />
             <Route path="events/update/:id" element={<UpdateEventPage />} />
+            <Route path="coba" element={<CobaPage />} />
+            <Route path="cobalagi" element={<CobaLagiPage />} />
+            <Route path="orders" element={<DaftarPesananPage />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
 
           {/* Fallback */}
