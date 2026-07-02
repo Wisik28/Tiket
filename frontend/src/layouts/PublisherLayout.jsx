@@ -23,20 +23,17 @@ export default function PublisherLayout() {
             <Link to="/publisher/dashboard" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
               Dashboard
             </Link>
-            <Link to="/publisher/events" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Manage Events
-            </Link>
-            <Link to="/publisher/events/create" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Create Event
-            </Link>
+            {/* <Link to="/publisher/events" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
+              Kelola Acara
+            </Link> */}
+            {/* <Link to="/publisher/events/create" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
+              Buat Acara
+            </Link> */}
             <Link to="/publisher/orders" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Orders List
-            </Link>
-            <Link to="/publisher/reports" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Sales Report
+              Daftar Pesanan
             </Link>
             <Link to="/publisher/profile" className="block px-4 py-2.5 rounded-lg hover:bg-indigo-800 text-sm font-medium">
-              Publisher Profile
+              Profil Publisher
             </Link>
           </nav>
         </div>
@@ -57,7 +54,7 @@ export default function PublisherLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">Publisher Dashboard</h2>
-          <Link to="/" className="text-sm text-indigo-600 hover:text-indigo-500">View Public Site &rarr;</Link>
+          {/* <Link to="/" className="text-sm text-indigo-600 hover:text-indigo-500">View Public Site &rarr;</Link> */}
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <Outlet />

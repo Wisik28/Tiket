@@ -5,6 +5,8 @@ import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
 import PublisherLayout from '../layouts/PublisherLayout'
 import PublisherPage from '../pages/publisher/Dashboard'
+import CreateEventPage from '../pages/publisher/CreateEvent'
+import UpdateEventPage from '../pages/publisher/UpdateEvent'
 
 // Halaman placeholder sementara
 function HomePage() {
@@ -32,6 +34,8 @@ export default function AppRouter() {
           <Route path="/publisher" element={<PublisherLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<PublisherPage />} />
+            <Route path="events/create" element={<CreateEventPage />} />
+            <Route path="events/update/:id" element={<UpdateEventPage />} />
           </Route>
 
           {/* Fallback */}
