@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
 import { toast } from 'react-hot-toast'
 import './Dashboard.css'
@@ -85,27 +86,40 @@ const AlertIcon = () => (
 
 const CATEGORIES = ['Musik', 'Seminar', 'Seni', 'Festival']
 const CAT_COLORS = {
-  Music: '#7c3aed', Conference: '#0284c7', Workshop: '#0891b2',
-  Sports: '#16a34a', Art: '#db2777', Festival: '#ea580c', Other: '#64748b'
+  Music: '', Musik: '',
+  Conference: '', Seminar: '',
+  Workshop: '',
+  Sports: '',
+  Art: '', Seni: '',
+  Festival: '',
+  Other: ''
 }
 
 const CAT_EMOJI = {
-  Music: '🎵', Conference: '💼', Workshop: '🔧',
-  Sports: '⚽', Art: '🎨', Festival: '🎪', Other: '✨'
+  Music: '', Musik: '',
+  Conference: '', Seminar: '',
+  Workshop: '',
+  Sports: '',
+  Art: '', Seni: '',
+  Festival: '',
+  Other: ''
 }
 
 const DEFAULT_IMAGES = {
   Music: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=900&auto=format&fit=crop',
+  Musik: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=900&auto=format&fit=crop',
   Conference: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&auto=format&fit=crop',
+  Seminar: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&auto=format&fit=crop',
   Workshop: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=900&auto=format&fit=crop',
   Sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=900&auto=format&fit=crop',
   Art: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=900&auto=format&fit=crop',
+  Seni: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=900&auto=format&fit=crop',
   Festival: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&auto=format&fit=crop',
   Other: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&auto=format&fit=crop',
 }
 
 const EMPTY_FORM = {
-  title: '', category: 'Music', date: '', location: '',
+  title: '', category: 'Musik', date: '', location: '',
   description: '', image: '', price: '', capacity: '',
 }
 
@@ -154,8 +168,8 @@ const MOCK_EVENTS = [
   },
 ]
 
-const formatRupiah = (n) => IntL.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0)
-const formatDate = (d) => new Date(d).toDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+const formatRupiah = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0)
+const formatDate = (d) => new Date(d).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 const formatTime = (d) => new Date(d).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 const loadMock = () => { const s = localStorage.getItem('pub_events'); return s ? JSON.parse(s) : null }
 const saveMock = (data) => localStorage.setItem('pub_events', JSON.stringify(data))
@@ -163,22 +177,17 @@ const saveMock = (data) => localStorage.setItem('pub_events', JSON.stringify(dat
 
 // Function Utama
 export default function PublisherDashboard() {
-  const qc = userQueryClient()
+  const qc = useQueryClient()
   const [search, setSearch] = useState('')
-  const [filterCat, setFilterCat] = useState('all')
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState(null)
+  const [filterCat, setFilterCat] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [formErrors, setFormErrors] = useState({})
 
-  const { data: events, isLoading, error } = useQuery({
+  const { data: events = [], isLoading } = useQuery({
     queryKey: ['pub-events'],
     queryFn: async () => {
-
       try {
         const res = await eventApi.getPublisherEvents()
-        if (res?.succes && Array.isArray(res?.data)) return res.data
+        if (res?.success && Array.isArray(res?.data)) return res.data
         throw new Error('Data tidak valid')
       } catch (err) {
         const local = loadMock()
@@ -192,28 +201,43 @@ export default function PublisherDashboard() {
     staleTime: 30000,
   })
 
-  // ===== Function membuat event baru =====
-  const createMutation = useMutation({
-    mutationFn: async (data) => {
+  // Stats
+  const stats = useMemo(() => ({
+    total: events.length,
+    sold: events.reduce((s, e) => s + Number(e.sold || 0), 0),
+    revenue: events.reduce((s, e) => s + Number(e.sold || 0) * Number(e.price || 0), 0),
+    stock: events.reduce((s, e) => s + Math.max(0, Number(e.quota || e.capacity || 0) - Number(e.sold || 0)), 0),
+  }), [events])
+
+  // Filtered
+  const filtered = useMemo(() => events.filter(e => {
+    const q = search.toLowerCase()
+    const matchQ = !q || e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
+    const matchC = filterCat === 'All' || e.category === filterCat
+    return matchQ && matchC
+  }), [events, search, filterCat])
+
+
+
+  // Function untuk hapus
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
       try {
-        const res = await eventApi.createEvent(data)
-        if (res?.succes) {
-          return res.data
-        }
+        const res = await eventApi.deleteEvent(id)
+        if (res?.success) return true
         throw new Error()
       } catch {
         const curr = loadMock() || []
-        const newEvent = { ...data, id: 'loc-' + Date.now(), sold: 0, status: 'published', createdAt: new Date().toISOString() }
-        saveMock([newEvent, ...curr])
-        return newEvent
+        saveMock(curr.filter(e => e.id !== id))
+        return true
       }
     },
     onSuccess: () => {
-      qc.innvalidateQueries({ queryKey: ['pub-events'] })
-      closeForm()
-      toast.succes('Event berhasil dibuat')
+      qc.invalidateQueries({ queryKey: ['pub-events'] })
+      setDeleteTarget(null)
+      toast.success('Event berhasil dihapus.')
     },
-    onError: () => toast.error('Gagal memuat event')
+    onError: () => toast.error('Gagal menghapus event.'),
   })
 
   // Page utama HTML
@@ -227,37 +251,36 @@ export default function PublisherDashboard() {
           <h1 className="pd-header__title">Kelola Event &amp; Tiket</h1>
           <p className="pd-header__sub">Publikasikan event, atur tiket, dan pantau penjualan secara real-time.</p>
         </div>
-        <button className="pd-btn pd-btn--primary pd-btn--lg" onClick={openCreate} id="btn-create-event">
-          <span className="pd-btn__icon"><PlusIcon /></span>
-          Tambah Event
-        </button>
+        <Link to="/publisher/events/create" className="pd-btn pd-btn--primary pd-btn--lg">
+          Buat Acara Baru
+        </Link>
       </header>
 
 
       {/* Ringkasan statistik */}
       <div className="pd-stats">
-        <div className="pd-stat pd-stat--blue">
+        <div className="pd-stat">
           <div className="pd-stat__icon"><CalendarIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num">{stats.total}</span>
             <span className="pd-stat__lbl">Total Event</span>
           </div>
         </div>
-        <div className="pd-stat pd-stat--green">
+        <div className="pd-stat">
           <div className="pd-stat__icon"><UsersIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num">{stats.sold.toLocaleString('id-ID')}</span>
             <span className="pd-stat__lbl">Tiket Terjual</span>
           </div>
         </div>
-        <div className="pd-stat pd-stat--amber">
+        <div className="pd-stat">
           <div className="pd-stat__icon"><RevenueIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num pd-stat__num--sm">{formatRupiah(stats.revenue)}</span>
             <span className="pd-stat__lbl">Total Pendapatan</span>
           </div>
         </div>
-        <div className="pd-stat pd-stat--violet">
+        <div className="pd-stat">
           <div className="pd-stat__icon"><StockIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num">{stats.stock.toLocaleString('id-ID')}</span>
@@ -308,7 +331,7 @@ export default function PublisherDashboard() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="pd-empty">
-          <div className="pd-empty__ucon"><TicketIcon /></div>
+          <div className="pd-empty__icon"><TicketIcon /></div>
           <h3>Data tidak ditemukan</h3>
           <p>
             {search || filterCat !== 'All'
@@ -316,20 +339,20 @@ export default function PublisherDashboard() {
               : 'Klik "Tambah Event" untuk memulai membuat dan menjual tiket'}
           </p>
           {!search && filterCat === 'All' && (
-            <button className="pd-btn pd-btn--primary" onClick={openCreate}>
-              <span className="pd-btn__icon">PlusIcon /</span>
+            <Link to="/publisher/events/create" className="pd-btn pd-btn--primary">
+              <span className="pd-btn__icon"><PlusIcon /></span>
               Tambah Event Pertama
-            </button>
+            </Link>
           )}
         </div>
       ) : (
         <div className="pd-event-grid">
           {filtered.map(event => {
             const sold = Number(event.sold || 0)
-            const cap = Number(event.capacity || 0)
+            const cap = Number(event.quota || event.capacity || 0)
             const pct = cap > 0 ? Math.min((sold / cap) * 100, 100) : 0
             const isFull = cap > 0 && sold >= cap
-            const isHot = pct => 75 && !isFull
+            const isHot = pct >= 75 && !isFull
             const catClr = CAT_COLORS[event.category] || '#64748b'
 
             return (
@@ -337,7 +360,7 @@ export default function PublisherDashboard() {
                 {/* Banner */}
                 <div className="pd-card__banner">
                   <img
-                    src={event.image || DEFAULT_IMAGES[event.category] || DEFAULT_IMAGES.Other}
+                    src={event.image_url || event.image || DEFAULT_IMAGES[event.category] || DEFAULT_IMAGES.Other}
                     alt={event.title}
                     className="pd-card__img"
                     onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
@@ -382,7 +405,7 @@ export default function PublisherDashboard() {
                     </div>
                     <div className="pd-card__kpi">
                       <span className="pd-card__kpi-lbl">Kapasitas</span>
-                      <span className="pd-card__kpi-val">{Number(event.capacity).toLocaleString('id-ID')}</span>
+                      <span className="pd-card__kpi-val">{Number(event.quota || event.capacity).toLocaleString('id-ID')}</span>
                     </div>
                     <div className="pd-card__kpi">
                       <span className="pd-card__kpi-lbl">Terjual</span>
@@ -410,18 +433,19 @@ export default function PublisherDashboard() {
 
                 {/* Footer */}
                 <div className="pd-card__footer">
-                  <span className={`pd-status-badge pd-status-badge--${event.status || 'published'}`}>
+                  {/* <span className={`pd-status-badge pd-status-badge--${event.status || 'published'}`}>
                     {event.status === 'draft' ? 'Draft' : 'Dipublikasikan'}
-                  </span>
+                  </span> */}
                   <div className="pd-card__actions">
-                    <button
+                    <Link
+                      to={`/publisher/events/update/${event.id}`}
+                      state={{ event }}
                       className="pd-icon-btn pd-icon-btn--edit"
-                      onClick={() => openEdit(event)}
                       title="Edit Event"
                       id={`btn-edit-${event.id}`}
                     >
                       <EditIcon /> Edit
-                    </button>
+                    </Link>
                     <button
                       className="pd-icon-btn pd-icon-btn--del"
                       onClick={() => setDeleteTarget(event)}
@@ -434,210 +458,45 @@ export default function PublisherDashboard() {
                 </div>
               </article>
             )
-          }
-          )
-          }
-
-
-
-
-
-
+          })}
         </div>
       )}
-      {isFormOpen && (
-        <div className="pd-overlay" onClick={e => e.target === e.currentTarget && closeForm()}>
-          <div className="pd-modal" role="dialog" aria-modal="true">
-            {/* Modal header */}
-            <div className="pd-modal__header">
-              <div className="pd-modal__header-left">
-                <div className="pd-modal__header-icon">
-                  {editTarget ? <EditIcon /> : <PlusIcon />}
-                </div>
-                <div>
-                  <h2 className="pd-modal__title">
-                    {editTarget ? 'Edit Event' : 'Tambah Event Baru'}
-                  </h2>
-                  <p className="pd-modal__sub">
-                    {editTarget
-                      ? 'Perbarui informasi event yang sudah dipublikasikan.'
-                      : 'Isi seluruh informasi event dan harga tiket untuk mulai berjualan.'}
-                  </p>
-                </div>
+
+
+      {/* Konfirmasi ketika publisher ingin menghapus event */}
+      {deleteTarget && (
+        <div className="pd-overlay">
+          <div className="pd-modal pd-modal--sm" role="dialog">
+            <div className="pd-confirm">
+              <div className="pd-confirm__icon">
+                <AlertIcon />
               </div>
-              <button className="pd-modal__close" onClick={closeForm} id="btn-close-modal">
-                <CloseIcon />
-              </button>
-            </div>
-
-            {/* Modal form body */}
-            <form className="pd-modal__body" onSubmit={handleSubmit} noValidate>
-              {/* Section: Info Dasar */}
-              <section className="pd-form-section">
-                <h3 className="pd-form-section__title">
-                  <span className="pd-form-section__num">1</span>
-                  Informasi Dasar
-                </h3>
-                <div className="pd-form-grid">
-                  {/* Nama Event */}
-                  <div className={`pd-field pd-field--full ${formErrors.title ? 'pd-field--error' : ''}`}>
-                    <label className="pd-field__label" htmlFor="f-title">Nama Event <span className="pd-req">*</span></label>
-                    <input
-                      id="f-title"
-                      className="pd-field__input"
-                      type="text"
-                      placeholder="Contoh: Jazz & Coffee Night 2026"
-                      value={form.title}
-                      onChange={e => setField('title', e.target.value)}
-                    />
-                    {formErrors.title && <p className="pd-field__err">{formErrors.title}</p>}
-                  </div>
-
-                  {/* Kategori */}
-                  <div className="pd-field">
-                    <label className="pd-field__label" htmlFor="f-category">Kategori <span className="pd-req">*</span></label>
-                    <select
-                      id="f-category"
-                      className="pd-field__input pd-field__input--select"
-                      value={form.category}
-                      onChange={e => setField('category', e.target.value)}
-                    >
-                      {CATEGORIES.map(c => <option key={c} value={c}>{CAT_EMOJI[c]} {c}</option>)}
-                    </select>
-                  </div>
-
-                  {/* Tanggal */}
-                  <div className={`pd-field ${formErrors.date ? 'pd-field--error' : ''}`}>
-                    <label className="pd-field__label" htmlFor="f-date">Tanggal &amp; Waktu <span className="pd-req">*</span></label>
-                    <input
-                      id="f-date"
-                      className="pd-field__input"
-                      type="datetime-local"
-                      value={form.date}
-                      onChange={e => setField('date', e.target.value)}
-                    />
-                    {formErrors.date && <p className="pd-field__err">{formErrors.date}</p>}
-                  </div>
-
-                  {/* Lokasi */}
-                  <div className={`pd-field pd-field--full ${formErrors.location ? 'pd-field--error' : ''}`}>
-                    <label className="pd-field__label" htmlFor="f-location">Lokasi / Venue <span className="pd-req">*</span></label>
-                    <input
-                      id="f-location"
-                      className="pd-field__input"
-                      type="text"
-                      placeholder="Contoh: Istora Senayan, Jakarta Pusat"
-                      value={form.location}
-                      onChange={e => setField('location', e.target.value)}
-                    />
-                    {formErrors.location && <p className="pd-field__err">{formErrors.location}</p>}
-                  </div>
-
-                  {/* Deskripsi */}
-                  <div className="pd-field pd-field--full">
-                    <label className="pd-field__label" htmlFor="f-desc">Deskripsi Event</label>
-                    <textarea
-                      id="f-desc"
-                      className="pd-field__input pd-field__input--textarea"
-                      placeholder="Deskripsikan detail event, pengisi acara, dan informasi penting lainnya…"
-                      rows="4"
-                      value={form.description}
-                      onChange={e => setField('description', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Section: Tiket & Harga */}
-              <section className="pd-form-section">
-                <h3 className="pd-form-section__title">
-                  <span className="pd-form-section__num">2</span>
-                  Tiket &amp; Kapasitas
-                </h3>
-                <div className="pd-form-grid">
-                  <div className={`pd-field ${formErrors.price ? 'pd-field--error' : ''}`}>
-                    <label className="pd-field__label" htmlFor="f-price">Harga Tiket (IDR) <span className="pd-req">*</span></label>
-                    <div className="pd-field__prefix-wrap">
-                      <span className="pd-field__prefix">Rp</span>
-                      <input
-                        id="f-price"
-                        className="pd-field__input pd-field__input--prefix"
-                        type="number"
-                        min="0"
-                        placeholder="0"
-                        value={form.price}
-                        onChange={e => setField('price', e.target.value)}
-                      />
-                    </div>
-                    {formErrors.price && <p className="pd-field__err">{formErrors.price}</p>}
-                  </div>
-
-                  <div className={`pd-field ${formErrors.capacity ? 'pd-field--error' : ''}`}>
-                    <label className="pd-field__label" htmlFor="f-capacity">Kapasitas Total <span className="pd-req">*</span></label>
-                    <input
-                      id="f-capacity"
-                      className="pd-field__input"
-                      type="number"
-                      min="1"
-                      placeholder="Contoh: 5000"
-                      value={form.capacity}
-                      onChange={e => setField('capacity', e.target.value)}
-                    />
-                    {formErrors.capacity && <p className="pd-field__err">{formErrors.capacity}</p>}
-                  </div>
-                </div>
-              </section>
-
-              {/* Section: Gambar */}
-              <section className="pd-form-section">
-                <h3 className="pd-form-section__title">
-                  <span className="pd-form-section__num">3</span>
-                  Gambar Banner <span className="pd-form-section__opt">(opsional)</span>
-                </h3>
-                <div className="pd-form-grid">
-                  <div className="pd-field pd-field--full">
-                    <label className="pd-field__label" htmlFor="f-image">URL Gambar</label>
-                    <input
-                      id="f-image"
-                      className="pd-field__input"
-                      type="url"
-                      placeholder="https://images.unsplash.com/photo-… (kosongkan untuk gambar default)"
-                      value={form.image}
-                      onChange={e => setField('image', e.target.value)}
-                    />
-                    <p className="pd-field__hint">Kosongkan untuk menggunakan gambar default sesuai kategori.</p>
-                  </div>
-                  {(form.image || DEFAULT_IMAGES[form.category]) && (
-                    <div className="pd-field pd-field--full">
-                      <p className="pd-field__label">Preview</p>
-                      <div className="pd-img-preview">
-                        <img
-                          src={form.image || DEFAULT_IMAGES[form.category]}
-                          alt="preview"
-                          onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              {/* Modal footer */}
-              <div className="pd-modal__footer">
-                <button type="button" className="pd-btn pd-btn--ghost" onClick={closeForm} id="btn-cancel-form">
+              <h3 className="pd-confirm__title">Hapus Event?</h3>
+              <p className="pd-confirm__msg">
+                Event <strong>"{deleteTarget.title}"</strong> akan dihapus secara permanen.
+                Semua data penjualan tiket terkait juga akan hilang. Tindakan ini tidak dapat dibatalkan.
+              </p>
+              <div className="pd-confirm__actions">
+                <button
+                  className="pd-btn pd-btn--ghost"
+                  onClick={() => setDeleteTarget(null)}
+                  id="btn-cancel-delete"
+                >
                   Batal
                 </button>
-                <button type="submit" className="pd-btn pd-btn--primary" disabled={isSaving} id="btn-submit-form">
-                  {isSaving ? (
-                    <><span className="pd-btn__spinner" /> Menyimpan…</>
-                  ) : editTarget ? (
-                    <><span className="pd-btn__icon"><EditIcon /></span> Simpan Perubahan</>
-                  ) : (
-                    <><span className="pd-btn__icon"><PlusIcon /></span> Publikasikan Event</>
-                  )}
+                <button
+                  className="pd-btn pd-btn--danger"
+                  onClick={() => deleteMutation.mutate(deleteTarget.id)}
+                  disabled={deleteMutation.isPending}
+                  id="btn-confirm-delete"
+                >
+                  {deleteMutation.isPending
+                    ? <><span className="pd-btn__spinner" /> Menghapus…</>
+                    : <><span className="pd-btn__icon"><TrashIcon /></span> Ya, Hapus</>
+                  }
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
