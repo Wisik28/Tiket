@@ -12,9 +12,9 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
     $eventRoutes = require __DIR__ . '/event.php';
     $eventRoutes($r);
 
-    // In the future, other routes can be registered here:
-    // $userRoutes = require __DIR__ . '/user.php';
-    // $userRoutes($r);
+    // Load user routes (dashboard, purchase ticket)
+    $userRoutes = require __DIR__ . '/user.php';
+    $userRoutes($r);
 });
 
 return $dispatcher;
