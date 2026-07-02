@@ -23,6 +23,19 @@ class Event
     }
 
     /**
+     * Ambil semua event (untuk user)
+     */
+    public static function findAll(): array
+    {
+        $collection = self::getCollection();
+        $cursor = $collection->find(
+            [], // Tanpa filter publisher_id, agar semua event tampil
+            ['sort' => ['createdAt' => -1]]
+        );
+        return $cursor->toArray();
+    }
+
+    /**
      * Cari event berdasarkan ID
      */
     public static function findById(string $id)
@@ -98,5 +111,18 @@ class Event
         $collection = self::getCollection();
         $result = $collection->deleteOne(['_id' => new \MongoDB\BSON\ObjectId($id)]);
         return $result->getDeletedCount() > 0;
+    }
+
+    /**
+     * Kurangi kuota event saat tiket dibeli
+     */
+    public static function decrementQuota(string $id, int $quantity): bool
+    {
+        $collection = self::getCollection();
+        $result = $collection->updateOne(
+            ['_id' => new \MongoDB\BSON\ObjectId($id)],
+            ['$inc' => ['quota' => -$quantity]]
+        );
+        return $result->getModifiedCount() > 0;
     }
 }

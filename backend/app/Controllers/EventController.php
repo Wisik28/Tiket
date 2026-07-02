@@ -39,6 +39,30 @@ class EventController
     }
 
     /**
+     * GET /api/user/events
+     * Ambil semua event (untuk user)
+     */
+    public function publicIndex()
+    {
+        try {
+            $events = $this->eventService->getPublicEvents();
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Events retrieved successfully.',
+                'data'    => $events
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Internal Server Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * GET /api/publisher/events/{id}
      * Ambil detail satu event milik publisher
      */

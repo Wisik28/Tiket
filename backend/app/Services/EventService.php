@@ -46,6 +46,15 @@ class EventService
     }
 
     /**
+     * Ambil semua event (untuk user publik)
+     */
+    public function getPublicEvents(): array
+    {
+        $events = Event::findAll();
+        return array_map([$this, 'formatEvent'], $events);
+    }
+
+    /**
      * Ambil satu event berdasarkan ID (hanya milik publisher)
      */
     public function getEventById(string $id, string $publisherId): array
