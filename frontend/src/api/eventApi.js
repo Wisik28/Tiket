@@ -17,6 +17,10 @@ export const eventApi = {
     const response = await axiosInstance.get('/publisher/events')
     return response.data
   },
+  getUserEvents: async () => {
+    const response = await axiosInstance.get('/user/events')
+    return response.data
+  },
   createEvent: async (eventData) => {
     const response = await axiosInstance.post('/publisher/events', eventData)
     return response.data
