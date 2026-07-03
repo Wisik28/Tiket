@@ -34,6 +34,7 @@ class User
             'email' => $data['email'],
             'password' => password_hash($data['password'], PASSWORD_BCRYPT),
             'role' => $data['role'], // "publisher" or "user"
+            'company_name' => $data['company_name'] ?? null,
             'createdAt' => new \MongoDB\BSON\UTCDateTime(),
             'updatedAt' => new \MongoDB\BSON\UTCDateTime(),
         ];

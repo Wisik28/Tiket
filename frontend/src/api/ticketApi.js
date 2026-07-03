@@ -17,4 +17,8 @@ export const ticketApi = {
     const response = await axiosInstance.get('/tickets/my')
     return response.data
   },
+  purchaseTicket: async (ticketData) => {
+    const response = await axiosInstance.post('/user/tickets', ticketData)
+    return response.data
+  },
 }
