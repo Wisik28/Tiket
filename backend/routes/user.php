@@ -5,26 +5,30 @@ use App\Middleware\RoleMiddleware;
 
 return function (\FastRoute\RouteCollector $r) {
 
-    // Semua route di sini membutuhkan:
-    // 1. AuthMiddleware  — user harus login (JWT valid)
-    // 2. RoleMiddleware  — user harus memiliki role "user"
-
-    $middlewares = [
-        AuthMiddleware::class,
-        [RoleMiddleware::class, 'user'],
-    ];
-
-    // GET /api/user/events — ambil semua event publik
+    // GET /api/user/events — ambil semua event publik (terbuka untuk user & publisher terautentikasi)
     $r->addRoute('GET', '/api/user/events', [
         'App\Controllers\EventController',
         'publicIndex',
-        $middlewares
+        [AuthMiddleware::class]
     ]);
 
-    // POST /api/user/tickets — buat pembelian tiket
+    // POST /api/user/tickets — buat pembelian tiket (hanya role "user")
     $r->addRoute('POST', '/api/user/tickets', [
         'App\Controllers\TicketController',
         'store',
-        $middlewares
+        [
+            AuthMiddleware::class,
+            [RoleMiddleware::class, 'user']
+        ]
+    ]);
+
+    // GET /api/user/tickets — ambil riwayat pembelian tiket user (hanya role "user")
+    $r->addRoute('GET', '/api/user/tickets', [
+        'App\Controllers\TicketController',
+        'index',
+        [
+            AuthMiddleware::class,
+            [RoleMiddleware::class, 'user']
+        ]
     ]);
 };

@@ -10,7 +10,9 @@ import { authApi } from '../../api/authApi'
 const registerSchema = z
   .object({
     name: z.string().min(2, 'Nama minimal 2 karakter'),
+    address: z.string().min(10, 'Alamat harus lengkap'),
     email: z.string().email('Format email tidak valid'),
+    mobile: z.string().min(12, 'Nomor handphone tidak valid'),
     password: z.string().min(6, 'Password minimal 6 karakter'),
     role: z.enum(['user', 'publisher']),
     company_name: z.string().optional(),
@@ -47,6 +49,8 @@ export default function RegisterPage() {
       password: '',
       role: 'user',
       company_name: '',
+      address: '',      
+      mobile: '',
     },
   })
   
@@ -60,6 +64,9 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         role: formData.role,
+        address: formData.address,
+        // phone: formData.mobile,
+        mobile: formData.mobile,
         ...(formData.role === 'publisher' ? { company_name: formData.company_name } : {}),
       }
 
@@ -212,6 +219,29 @@ export default function RegisterPage() {
                 {errors.name && <p className="login-field__error">{errors.name.message}</p>}
               </div>
 
+              {/* Alamat field */}
+              <div className="login-field">
+                <label htmlFor="reg-address" className="login-field__label">
+                  Alamat Tinggal/Institusi
+                </label>
+                <div className={`login-field__input-wrapper ${errors.address ? 'login-field__input-wrapper--error' : ''}`}>
+                  <div className="login-field__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                  </div>
+                  <input
+                    id="reg-address"
+                    type="text"
+                    placeholder="Masukkan alamat lengkap"
+                    className="login-field__input"
+                    {...register('address')}
+                  />
+                </div>
+                {errors.address && <p className="login-field__error">{errors.address.message}</p>}
+              </div>
+
               {/* Company Name field (Conditional) */}
               {selectedRole === 'publisher' && (
                 <div className="login-field animate-fade-in">
@@ -262,6 +292,29 @@ export default function RegisterPage() {
                   />
                 </div>
                 {errors.email && <p className="login-field__error">{errors.email.message}</p>}
+              </div>
+
+              {/* Nomor Handphone */}
+              <div className="login-field">
+                <label htmlFor="reg-mobile" className="login-field__label">
+                  Nomor Telepon
+                </label>
+                <div className={`login-field__input-wrapper ${errors.mobile ? 'login-field__input-wrapper--error' : ''}`}>
+                  <div className="login-field__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                      <line x1="12" y1="18" x2="12.01" y2="18" />
+                    </svg>
+                  </div>
+                  <input
+                    id="reg-mobile"
+                    type="tel"
+                    placeholder="Contoh: 08123456789"
+                    className="login-field__input"
+                    {...register('mobile')}
+                  />
+                </div>
+                {errors.mobile && <p className="login-field__error">{errors.mobile.message}</p>}
               </div>
 
               {/* Password field */}
