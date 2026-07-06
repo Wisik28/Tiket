@@ -1,11 +1,11 @@
 import React from 'react'
-// import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 
 export default function UserLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleLogout = () => {
     logout()
@@ -31,9 +31,11 @@ export default function UserLayout() {
 
             <NavLink
               to="/user/riwayatPembelian"
-              className={({ isActive }) =>
-                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
-            } > Riwayat Pembelian </NavLink>
+              className={({ isActive }) => {
+                const isRiwayatActive = isActive || location.pathname.startsWith('/user/detailRiwayat/')
+                return `block px-4 py-2.5 rounded-lg text-sm font-medium ${isRiwayatActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+              }}
+            > Riwayat Pembelian </NavLink>
 
             <NavLink
               to="/user/profileUser"

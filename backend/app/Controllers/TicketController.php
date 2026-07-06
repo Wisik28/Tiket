@@ -14,6 +14,31 @@ class TicketController
     }
 
     /**
+     * GET /api/user/tickets
+     * Mengambil riwayat transaksi tiket milik user yang login
+     */
+    public function index()
+    {
+        try {
+            $userId = $_REQUEST['user']['id'];
+            $tickets = $this->ticketService->getUserTickets($userId);
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Tickets retrieved successfully.',
+                'data'    => $tickets
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Internal Server Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * POST /api/user/tickets
      * Membeli tiket
      */

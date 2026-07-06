@@ -14,7 +14,7 @@ export const ticketApi = {
     return response.data
   },
   getMyTickets: async () => {
-    const response = await axiosInstance.get('/tickets/my')
+    const response = await axiosInstance.get('/user/tickets')
     return response.data
   },
   purchaseTicket: async (ticketData) => {

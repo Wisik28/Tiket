@@ -18,6 +18,7 @@ import UserLayout from '../layouts/UserLayout'
 import RiwayatPembelianPage from '../pages/user/RiwayatPembelian'
 import ProfilePageUser from '../pages/user/ProfileUser'
 import PembelianPage from '../pages/user/Pembelian'
+import DetailRiwayatPage from '../pages/user/DetailRiwayat'
 
 // cuma coba aja
 import CobaPage from '../pages/publisher/Coba'
@@ -49,6 +50,7 @@ export default function AppRouter() {
             <Route path="riwayatPembelian" element={<RiwayatPembelianPage />} />
             <Route path="profileUser" element={<ProfilePageUser />} />
             <Route path="pembelian/:id" element={<PembelianPage />} />
+            <Route path="detailRiwayat/:id" element={<DetailRiwayatPage />} />
           </Route>
 
           {/* Routing publisher */}

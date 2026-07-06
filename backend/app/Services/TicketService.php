@@ -35,7 +35,45 @@ class TicketService
             }
         }
 
+        // Format nested event detail jika ada (dari lookup)
+        if (isset($data['event']) && (is_array($data['event']) || is_object($data['event']))) {
+            $eventData = (array) $data['event'];
+            if (isset($eventData['_id'])) {
+                $eventData['id'] = (string) $eventData['_id'];
+                unset($eventData['_id']);
+            }
+            if (isset($eventData['publisher_id'])) {
+                $eventData['publisher_id'] = (string) $eventData['publisher_id'];
+            }
+            foreach (['createdAt', 'updatedAt'] as $field) {
+                if (isset($eventData[$field]) && $eventData[$field] instanceof \MongoDB\BSON\UTCDateTime) {
+                    $eventData[$field] = $eventData[$field]->toDateTime()->format(\DateTime::ATOM);
+                }
+            }
+
+            // Map nama penyelenggara/publisher ke event
+            if (isset($data['publisher']) && (is_array($data['publisher']) || is_object($data['publisher']))) {
+                $publisherData = (array) $data['publisher'];
+                $eventData['company_name'] = $publisherData['company_name'] ?? null;
+            }
+
+            $data['event'] = $eventData;
+        }
+
+        if (isset($data['publisher'])) {
+            unset($data['publisher']);
+        }
+
         return $data;
+    }
+
+    /**
+     * Mengambil riwayat pembelian tiket user
+     */
+    public function getUserTickets(string $userId): array
+    {
+        $tickets = Ticket::findAllByUser($userId);
+        return array_map([$this, 'formatTicket'], $tickets);
     }
 
     /**

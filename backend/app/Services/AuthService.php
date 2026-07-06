@@ -11,8 +11,8 @@ class AuthService
     public function register(array $data)
     {
         // 1. Validasi field wajib
-        if (empty($data['name']) || empty($data['email']) || empty($data['password']) || empty($data['role'])) {
-            throw new \InvalidArgumentException('Name, email, password, and role are required.', 400);
+        if (empty($data['name']) || empty($data['email']) || empty($data['password']) || empty($data['role']) || empty($data['address']) || empty($data['mobile'])) {
+            throw new \InvalidArgumentException('Name, email, password, role, address, and mobile are required.', 400);
         }
 
         // 2. Validasi format email
