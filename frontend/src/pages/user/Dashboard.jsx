@@ -131,7 +131,7 @@ const saveMock = (data) => localStorage.setItem('pub_events', JSON.stringify(dat
 
 
 // Function Utama
-export default function PublisherDashboard() {
+export default function UserDashboard() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('All')
@@ -157,12 +157,12 @@ export default function PublisherDashboard() {
   })
 
   // Stats
-  const stats = useMemo(() => ({
-    total: events.length,
-    sold: events.reduce((s, e) => s + Number(e.sold || 0), 0),
-    revenue: events.reduce((s, e) => s + Number(e.sold || 0) * Number(e.price || 0), 0),
-    stock: events.reduce((s, e) => s + Math.max(0, Number(e.quota || e.capacity || 0) - Number(e.sold || 0)), 0),
-  }), [events])
+  // const stats = useMemo(() => ({
+  //   total: events.length,
+  //   sold: events.reduce((s, e) => s + Number(e.sold || 0), 0),
+  //   revenue: events.reduce((s, e) => s + Number(e.sold || 0) * Number(e.price || 0), 0),
+  //   stock: events.reduce((s, e) => s + Math.max(0, Number(e.quota || e.capacity || 0) - Number(e.sold || 0)), 0),
+  // }), [events])
 
   // Filtered
   const filtered = useMemo(() => events.filter(e => {
@@ -175,25 +175,25 @@ export default function PublisherDashboard() {
 
 
   // Function untuk hapus
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      try {
-        const res = await eventApi.deleteEvent(id)
-        if (res?.success) return true
-        throw new Error()
-      } catch {
-        const curr = loadMock() || []
-        saveMock(curr.filter(e => e.id !== id))
-        return true
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['pub-events'] })
-      setDeleteTarget(null)
-      toast.success('Event berhasil dihapus.')
-    },
-    onError: () => toast.error('Gagal menghapus event.'),
-  })
+  // const deleteMutation = useMutation({
+  //   mutationFn: async (id) => {
+  //     try {
+  //       const res = await eventApi.deleteEvent(id)
+  //       if (res?.success) return true
+  //       throw new Error()
+  //     } catch {
+  //       const curr = loadMock() || []
+  //       saveMock(curr.filter(e => e.id !== id))
+  //       return true
+  //     }
+  //   },
+  //   onSuccess: () => {
+  //     qc.invalidateQueries({ queryKey: ['pub-events'] })
+  //     setDeleteTarget(null)
+  //     toast.success('Event berhasil dihapus.')
+  //   },
+  //   onError: () => toast.error('Gagal menghapus event.'),
+  // })
 
   // Page utama HTML
   return (
@@ -318,6 +318,8 @@ export default function PublisherDashboard() {
                   <div className="pd-card__actions">
                     <Link
                       to={`/user/pembelian/${event.id}`}
+                      // sementara diganti ini dlu nanti baliikin pake yg diatas
+                      // to={`/user/tempPembelian/${event.id}`}
                       state={{ event }}
                       className="pd-icon-btn pd-icon-btn--edit"
                       title="Edit Event"

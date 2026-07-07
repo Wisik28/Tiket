@@ -30,7 +30,7 @@ export default function PublisherLayout() {
       <aside className="w-64 bg-indigo-900 text-white flex flex-col justify-between">
         <div className="p-6">
           <Link to="/publisher/dashboard" className="text-2xl font-bold tracking-wider">
-            Organizer
+            Menu
           </Link>
           <nav className="mt-8 space-y-2">
             {/* /publisher/dashboard - harus sesuai dengan apa yang ada di AppRouter.jsx */}

@@ -157,7 +157,7 @@ export default function RegisterPage() {
             <div className="login-form-header">
               <h2 className="login-form-header__title">Buat Akun Baru</h2>
               <p className="login-form-header__desc">
-                Mulai perjalanan Anda sebagai User atau Publisher
+                Mulai perjalanan Anda sebagai Pembeli atau Publisher
               </p>
             </div>
 
@@ -178,7 +178,7 @@ export default function RegisterPage() {
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
-                    User
+                    Pembeli
                   </button>
                   <button
                     type="button"

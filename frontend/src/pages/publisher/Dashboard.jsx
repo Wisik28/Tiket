@@ -247,7 +247,7 @@ export default function PublisherDashboard() {
       {/* Header */}
       <header className="pd-header">
         <div className="pd-header__left">
-          <p className="pd-header__eyebrow">Publisher Dashboard</p>
+          {/* <p className="pd-header__eyebrow">Dashboard Publisher</p> */}
           <h1 className="pd-header__title">Kelola Event &amp; Tiket</h1>
           <p className="pd-header__sub">Publikasikan event, atur tiket, dan pantau penjualan secara real-time.</p>
         </div>

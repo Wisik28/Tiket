@@ -86,12 +86,12 @@ export default function RiwayatPembelian() {
             <p className="text-gray-500 text-sm mt-1">Tiket yang Anda beli akan muncul di sini.</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div>
             {purchases.map((purchase) => (
               <div
                 key={purchase.id}
                 onClick={() => navigate(`/user/detailRiwayat/${purchase.id}`, { state: { purchase } })}
-                className="p-6 hover:bg-gray-50/50 hover:shadow-sm cursor-pointer transition-all duration-200 flex flex-col md:flex-row justify-between gap-4 md:items-center border-l-4 border-l-transparent hover:border-l-indigo-600"
+                className="p-6 border-t border-gray-100 first:border-t-0 hover:bg-gray-50 hover:shadow-sm cursor-pointer transition-all duration-200 flex flex-col md:flex-row justify-between gap-4 md:items-center border-l-4 border-l-transparent hover:border-l-indigo-600"
               >
                 <div className="flex items-start gap-4">
                   {/* Category Indicator Icon */}
@@ -118,7 +118,7 @@ export default function RiwayatPembelian() {
                     <p className="text-xs text-gray-400">Total Pembayaran ({purchase.quantity} Tiket)</p>
                     <p className="text-lg font-bold text-indigo-600 mt-0.5">{formatRupiah(purchase.total_price)}</p>
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
+                  <span className="items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
                     Berhasil
                   </span>
