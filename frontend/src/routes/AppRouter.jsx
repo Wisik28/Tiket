@@ -19,6 +19,8 @@ import RiwayatPembelianPage from '../pages/user/RiwayatPembelian'
 import ProfilePageUser from '../pages/user/ProfileUser'
 import PembelianPage from '../pages/user/Pembelian'
 import DetailRiwayatPage from '../pages/user/DetailRiwayat'
+// Sementara
+// import TempPembelianPage from '../pages/user/Pembelian'
 
 // cuma coba aja
 import CobaPage from '../pages/publisher/Coba'
@@ -51,6 +53,8 @@ export default function AppRouter() {
             <Route path="profileUser" element={<ProfilePageUser />} />
             <Route path="pembelian/:id" element={<PembelianPage />} />
             <Route path="detailRiwayat/:id" element={<DetailRiwayatPage />} />
+            {/* digunakan utk smentara nanit dihapus */}
+            {/* <Route path="tempPembelian/:id" element={<TempPembelianPage />} /> */}
           </Route>
 
           {/* Routing publisher */}

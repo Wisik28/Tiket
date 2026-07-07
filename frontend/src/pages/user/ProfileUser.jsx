@@ -95,19 +95,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Nomor telepon */}
-            <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200">
-              <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Nomor Telepon</p>
-                <p className="text-base font-semibold text-gray-800 mt-1">{user?.phone || '—'}</p>
-              </div>
-            </div>
-
             {/* Nomor Handphone */}
             <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200">
               <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">

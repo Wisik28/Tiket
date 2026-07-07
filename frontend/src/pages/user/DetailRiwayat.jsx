@@ -1,13 +1,35 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
+import { QRCodeSVG } from 'qrcode.react'
+import useAuth from '../../hooks/useAuth'
 import './Dashboard.css'
 
 export default function DetailRiwayat() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const purchase = location.state?.purchase
   const event = purchase?.event
+
+  const [showQR, setShowQR] = useState(false)
+  const [currentTicketIndex, setCurrentTicketIndex] = useState(0)
+
+  const handlePrevTicket = () => {
+    setCurrentTicketIndex(prev => (prev === 0 ? purchase.quantity - 1 : prev - 1))
+  }
+
+  const handleNextTicket = () => {
+    setCurrentTicketIndex(prev => (prev === purchase.quantity - 1 ? 0 : prev + 1))
+  }
+
+  const getAttendeeName = (index) => {
+    if (!purchase) return ''
+    const storedNames = JSON.parse(localStorage.getItem(`ticket_holders_${purchase.id}`)) || []
+    if (storedNames[index]) return storedNames[index]
+    if (index === 0) return user?.name || 'Pengunjung 1'
+    return `Pengunjung ${index + 1}`
+  }
 
   // Redirect ke riwayat pembelian jika data tidak ditemukan
   React.useEffect(() => {
@@ -43,9 +65,6 @@ export default function DetailRiwayat() {
     })
   }
 
-  const handlePrint = () => {
-    window.print()
-  }
 
   if (!purchase || !event) return null
 
@@ -151,7 +170,7 @@ export default function DetailRiwayat() {
               </div>
               <div>
                 {/* nanti harus dirubah sehingga dia manggil variabel saja (lunas/gagal)
-                hal ini nanti diperbaiki setelah payment gateway selesai dibuat */}
+                hal ini diperbaiki setelah payment gateway selesai dibuat */}
                 <p className="text-gray-400 font-medium">Status Pembayaran</p>
                 <span className="items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100 mt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
@@ -168,23 +187,21 @@ export default function DetailRiwayat() {
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
 
-      {/* Control Buttons */}
+      {/* Button untuk mencetak QR Code */}
       <div className="mt-6 flex gap-4 print:hidden">
         <button
-          onClick={handlePrint}
+          onClick={() => setShowQR(true)}
           className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2zm0-9V9a4 4 0 014-4h4a4 4 0 014 4v2" />
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 15h.008v.008H15V15zm0 2.25h.008v.008H15v-.008zm0 2.25h.008v.008H15v-.008zm2.25-2.25h.008v.008H17.25v-.008zm0 2.25h.008v.008H17.25v-.008zm2.25-2.25h.008v.008H19.5v-.008zm0 2.25h.008v.008H19.5v-.008zM17.25 15h.008v.008H17.25V15zm2.25-2.25h.008v.008H19.5v-.008z" />
           </svg>
-          Cetak E-Tiket (PDF)
+          Tampilkan QR Code
         </button>
-
         <button
           onClick={() => navigate('/user/riwayatPembelian')}
           className="py-3 px-6 rounded-xl bg-white border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
@@ -192,6 +209,97 @@ export default function DetailRiwayat() {
           Kembali
         </button>
       </div>
+
+      {/* Tampilan QR Code */}
+      {showQR && (
+        <div className="pd-overlay animate-fade-in" onClick={() => setShowQR(false)}>
+          <div className="pd-modal pd-modal--sm p-6 text-center max-w-sm" role="dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
+              <h3 className="text-lg font-bold text-gray-900">QR Code E-Tiket</h3>
+              <button 
+                onClick={() => setShowQR(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="flex flex-col items-center justify-center py-4 w-full">
+              <div className="flex items-center justify-between w-full mb-5 gap-3">
+                {purchase.quantity > 1 ? (
+                  <button 
+                    onClick={handlePrevTicket}
+                    className="p-2 rounded-full hover:bg-gray-100 text-indigo-600 border border-gray-100 shadow-sm transition-all duration-200 active:scale-90 flex-shrink-0 cursor-pointer"
+                    title="Sebelumnya"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                ) : (
+                  <div className="w-9" />
+                )}
+
+                {/* isi QR code yang akan dicetak */}
+                <div className="flex flex-col items-center flex-1">
+                  <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-md flex items-center justify-center">
+                    <QRCodeSVG                       
+                      value={`${purchase.id}-ticket-${currentTicketIndex + 1}-${getAttendeeName(currentTicketIndex)}`} 
+                      size={180}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
+                  
+                  <p className="mt-3 text-xs font-bold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200/50 max-w-[200px] truncate animate-fade-in" key={currentTicketIndex} title={getAttendeeName(currentTicketIndex)}>
+                    <span className="text-[10px] text-gray-400 font-normal mr-1">Peserta:</span>
+                    {getAttendeeName(currentTicketIndex)}
+                  </p>
+                </div>
+
+                {purchase.quantity > 1 ? (
+                  <button 
+                    onClick={handleNextTicket}
+                    className="p-2 rounded-full hover:bg-gray-100 text-indigo-600 border border-gray-100 shadow-sm transition-all duration-200 active:scale-90 flex-shrink-0 cursor-pointer"
+                    title="Berikutnya"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                ) : (
+                  <div className="w-9" />
+                )}
+              </div>
+              
+              <h4 className="text-lg font-extrabold text-gray-900 mb-1 px-2 text-center">{event.title}</h4>
+              <p className="text-sm text-indigo-600 font-semibold mb-4 text-center">
+                {purchase.quantity > 1 ? `${currentTicketIndex + 1} / ${purchase.quantity}` : purchase.quantity} Tiket
+              </p>
+              
+              <div className="bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-100 w-full mb-5 text-center">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">ID Transaksi</p>
+                <p className="text-xs font-mono font-bold text-gray-700 select-all mt-1">{purchase.id}</p>
+              </div>
+              
+              <p className="text-xs text-gray-400 leading-relaxed px-2">
+                Tunjukkan QR Code ini kepada petugas di lokasi acara untuk proses verifikasi tiket.
+              </p>
+            </div>
+            
+            <div className="border-t border-gray-100 pt-4 mt-2">
+              <button
+                onClick={() => setShowQR(false)}
+                className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all text-sm shadow-md hover:shadow-lg"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
