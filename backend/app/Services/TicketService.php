@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Event;
 use App\Models\Ticket;
+use App\Models\User;
+use App\Services\PaymentService;
 
 class TicketService
 {
@@ -77,9 +79,9 @@ class TicketService
     }
 
     /**
-     * Membeli tiket
+     * Membeli tiket dan membuat Virtual Account Midtrans
      */
-    public function purchase(string $userId, string $eventId, int $quantity): array
+    public function purchase(string $userId, string $eventId, int $quantity, string $bank = 'bni'): array
     {
         if ($quantity < 1) {
             throw new \InvalidArgumentException('Quantity must be at least 1.', 400);
@@ -105,15 +107,83 @@ class TicketService
             throw new \RuntimeException('Failed to process ticket purchase (concurrency issue).', 500);
         }
 
-        // Simpan transaksi tiket
+        // Simpan tiket dengan status pending
         $ticketData = [
-            'user_id' => $userId,
-            'event_id' => $eventId,
-            'quantity' => $quantity,
+            'user_id'     => $userId,
+            'event_id'    => $eventId,
+            'quantity'    => $quantity,
             'total_price' => $totalPrice
         ];
+        $ticket   = Ticket::create($ticketData);
+        $ticketId = (string) $ticket['_id'];
+        $orderId  = 'TICKET-' . $ticketId;
 
-        $ticket = Ticket::create($ticketData);
+        // Ambil data user untuk isian customer detail Midtrans
+        $user = User::findById($userId);
+
+        // Buat Virtual Account di Midtrans
+        $paymentService = new PaymentService();
+        $vaResponse = $paymentService->createVirtualAccount(
+            $orderId,
+            (int) $totalPrice,
+            [
+                'name'  => $user ? (string)($user['name'] ?? 'Customer') : 'Customer',
+                'email' => $user ? (string)($user['email'] ?? '') : '',
+            ],
+            $bank
+        );
+
+        // Ambil nomor VA dari response Midtrans
+        $vaNumber      = $vaResponse['va_numbers'][0]['va_number'] ?? null;
+        $vaBank        = $vaResponse['va_numbers'][0]['bank'] ?? $bank;
+        $paymentExpiry = $vaResponse['expiry_time'] ?? null;
+
+        // Simpan info VA ke dokumen tiket
+        Ticket::updatePaymentInfo($ticketId, [
+            'payment_id'     => $orderId,
+            'va_number'      => $vaNumber,
+            'va_bank'        => $vaBank,
+            'payment_expiry' => $paymentExpiry,
+        ]);
+
+        // Tambahkan info VA ke array yang akan dikembalikan
+        $ticket['payment_id']     = $orderId;
+        $ticket['va_number']      = $vaNumber;
+        $ticket['va_bank']        = $vaBank;
+        $ticket['payment_expiry'] = $paymentExpiry;
+        $ticket['status']         = 'pending';
+
         return $this->formatTicket($ticket);
+    }
+
+    /**
+     * Menangani notifikasi webhook dari Midtrans
+     * Memverifikasi signature dan update status tiket
+     */
+    public function handleWebhookNotification(array $notification, string $serverKey): bool
+    {
+        $orderId      = $notification['order_id'] ?? '';
+        $statusCode   = $notification['status_code'] ?? '';
+        $grossAmount  = $notification['gross_amount'] ?? '';
+        $signatureKey = $notification['signature_key'] ?? '';
+        $txStatus     = $notification['transaction_status'] ?? '';
+        $fraudStatus  = $notification['fraud_status'] ?? '';
+
+        // Verifikasi signature Midtrans
+        $expectedSig = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+        if (!hash_equals($expectedSig, $signatureKey)) {
+            throw new \RuntimeException('Invalid signature.', 403);
+        }
+
+        // Tentukan status tiket berdasarkan status transaksi Midtrans
+        if (in_array($txStatus, ['settlement', 'capture'])) {
+            $status = ($fraudStatus === '' || $fraudStatus === 'accept') ? 'paid' : 'failed';
+        } elseif (in_array($txStatus, ['deny', 'cancel', 'expire', 'failure'])) {
+            $status = 'failed';
+        } else {
+            $status = 'pending';
+        }
+
+        return Ticket::updateStatusByOrderId($orderId, $status);
     }
 }

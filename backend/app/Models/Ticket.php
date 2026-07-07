@@ -17,18 +17,49 @@ class Ticket
         $collection = self::getCollection();
 
         $ticketData = [
-            'user_id'     => new \MongoDB\BSON\ObjectId($data['user_id']),
-            'event_id'    => new \MongoDB\BSON\ObjectId($data['event_id']),
-            'quantity'    => (int) $data['quantity'],
-            'total_price' => (float) $data['total_price'],
-            'createdAt'   => new \MongoDB\BSON\UTCDateTime(),
-            'updatedAt'   => new \MongoDB\BSON\UTCDateTime(),
+            'user_id'        => new \MongoDB\BSON\ObjectId($data['user_id']),
+            'event_id'       => new \MongoDB\BSON\ObjectId($data['event_id']),
+            'quantity'       => (int) $data['quantity'],
+            'total_price'    => (float) $data['total_price'],
+            'status'         => 'pending',   // pending | paid | failed
+            'payment_id'     => null,        // order_id Midtrans
+            'va_number'      => null,
+            'va_bank'        => null,
+            'payment_expiry' => null,
+            'createdAt'      => new \MongoDB\BSON\UTCDateTime(),
+            'updatedAt'      => new \MongoDB\BSON\UTCDateTime(),
         ];
 
         $result = $collection->insertOne($ticketData);
         $ticketData['_id'] = $result->getInsertedId();
 
         return $ticketData;
+    }
+
+    /**
+     * Update info Virtual Account setelah dibuat di Midtrans
+     */
+    public static function updatePaymentInfo(string $ticketId, array $paymentData): bool
+    {
+        $collection = self::getCollection();
+        $result = $collection->updateOne(
+            ['_id' => new \MongoDB\BSON\ObjectId($ticketId)],
+            ['$set' => array_merge($paymentData, ['updatedAt' => new \MongoDB\BSON\UTCDateTime()])]
+        );
+        return $result->getModifiedCount() > 0;
+    }
+
+    /**
+     * Update status tiket berdasarkan order_id (dipanggil dari webhook Midtrans)
+     */
+    public static function updateStatusByOrderId(string $orderId, string $status): bool
+    {
+        $collection = self::getCollection();
+        $result = $collection->updateOne(
+            ['payment_id' => $orderId],
+            ['$set' => ['status' => $status, 'updatedAt' => new \MongoDB\BSON\UTCDateTime()]]
+        );
+        return $result->getModifiedCount() > 0;
     }
 
     /**

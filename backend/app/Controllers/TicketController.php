@@ -53,7 +53,8 @@ class TicketController
                 throw new \InvalidArgumentException('event_id and quantity are required.', 400);
             }
 
-            $ticket = $this->ticketService->purchase($userId, $input['event_id'], (int) $input['quantity']);
+            $bank   = $input['bank'] ?? 'bni';
+            $ticket = $this->ticketService->purchase($userId, $input['event_id'], (int) $input['quantity'], $bank);
 
             http_response_code(201);
             echo json_encode([
@@ -79,6 +80,29 @@ class TicketController
                 'success' => false,
                 'message' => 'Internal Server Error: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * POST /api/payment/webhook
+     * Menerima notifikasi pembayaran dari Midtrans (tanpa auth)
+     */
+    public function handleWebhook()
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        try {
+            $serverKey = $_ENV['MIDTRANS_SERVER_KEY'] ?? '';
+            $this->ticketService->handleWebhookNotification($input, $serverKey);
+
+            http_response_code(200);
+            echo json_encode(['success' => true, 'message' => 'Notification processed.']);
+        } catch (\RuntimeException $e) {
+            http_response_code($e->getCode() ?: 400);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Internal Server Error']);
         }
     }
 }

@@ -5,16 +5,16 @@ export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('user')
+    const stored = sessionStorage.getItem('user')
     if (!stored || stored === 'undefined') return null
     try {
       return JSON.parse(stored)
     } catch (e) {
-      localStorage.removeItem('user')
+      sessionStorage.removeItem('user')
       return null
     }
   })
-  const [token, setToken] = useState(() => localStorage.getItem('token'))
+  const [token, setToken] = useState(() => sessionStorage.getItem('token'))
   const [loading, setLoading] = useState(false)
 
   const isAuthenticated = !!token && !!user
@@ -25,8 +25,8 @@ export function AuthProvider({ children }) {
       const responseData = await authApi.login(credentials)
       // API diharapkan mengembalikan: { success: true, data: { token, user: { id, name, email, role: 'user' | 'publisher' } } }
       const { token: newToken, user: userData } = responseData.data
-      localStorage.setItem('token', newToken)
-      localStorage.setItem('user', JSON.stringify(userData))
+      sessionStorage.setItem('token', newToken)
+      sessionStorage.setItem('user', JSON.stringify(userData))
       setToken(newToken)
       setUser(userData)
       return userData
@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
     } catch {
       // Tetap lanjutkan logout meskipun API gagal
     } finally {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
       setToken(null)
       setUser(null)
     }

@@ -4,8 +4,20 @@ import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 
 export default function PublisherLayout() {
-  const { user, logout } = useAuth()
+  const { user, token, logout } = useAuth()
   const navigate = useNavigate()
+
+  React.useEffect(() => {
+    if (!user || !token) {
+      navigate('/login', { replace: true })
+    } else if (user.role !== 'publisher') {
+      navigate(user.role === 'user' ? '/user/dashboard' : '/login', { replace: true })
+    }
+  }, [user, token, navigate])
+
+  if (!user || !token || user.role !== 'publisher') {
+    return null
+  }
 
   const handleLogout = () => {
     logout()

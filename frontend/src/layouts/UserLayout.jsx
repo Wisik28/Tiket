@@ -3,9 +3,21 @@ import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-do
 import useAuth from '../hooks/useAuth'
 
 export default function UserLayout() {
-  const { user, logout } = useAuth()
+  const { user, token, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  React.useEffect(() => {
+    if (!user || !token) {
+      navigate('/login', { replace: true })
+    } else if (user.role !== 'user') {
+      navigate(user.role === 'publisher' ? '/publisher/dashboard' : '/login', { replace: true })
+    }
+  }, [user, token, navigate])
+
+  if (!user || !token || user.role !== 'user') {
+    return null
+  }
 
   const handleLogout = () => {
     logout()

@@ -15,6 +15,10 @@ $dispatcher = simpleDispatcher(function (RouteCollector $r) {
     // Load user routes (dashboard, purchase ticket)
     $userRoutes = require __DIR__ . '/user.php';
     $userRoutes($r);
+
+    // Load payment routes (webhook dari Midtrans - tanpa auth)
+    $paymentRoutes = require __DIR__ . '/payment.php';
+    $paymentRoutes($r);
 });
 
 return $dispatcher;
