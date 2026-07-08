@@ -366,11 +366,11 @@ export default function TempPembelian() {
           <div className="p-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
               <div>
-                <span className="text-gray-400 font-medium">Harga Satuan:</span>{' '}
-                <strong className="text-gray-800 font-bold">{formatRupiah(event.price)}</strong>
+                <span className="text-gray-800 font-bold">Harga Satuan:</span>{' '}
+                <strong className="text-indigo-600 font-bold">{formatRupiah(event.price)}</strong>
               </div>
               <div>
-                <span className="text-gray-400 font-medium">Jumlah Tiket:</span>{' '}
+                <span className="text-gray-800 font-bold">Jumlah Tiket:</span>{' '}
                 <strong className="text-indigo-600 font-bold">{holders.length}x</strong>
               </div>
             </div>
