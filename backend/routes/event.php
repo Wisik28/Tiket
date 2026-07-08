@@ -42,6 +42,13 @@ return function (\FastRoute\RouteCollector $r) {
         $middlewares
     ]);
 
+    // POST /api/publisher/events/{id} — update event (to support multipart/form-data upload in PHP)
+    $r->addRoute('POST', '/api/publisher/events/{id}', [
+        'App\Controllers\EventController',
+        'update',
+        $middlewares
+    ]);
+
     // DELETE /api/publisher/events/{id} — hapus event
     $r->addRoute('DELETE', '/api/publisher/events/{id}', [
         'App\Controllers\EventController',

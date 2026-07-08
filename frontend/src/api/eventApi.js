@@ -26,7 +26,8 @@ export const eventApi = {
     return response.data
   },
   updateEvent: async (id, eventData) => {
-    const response = await axiosInstance.put(`/publisher/events/${id}`, eventData)
+    const method = eventData instanceof FormData ? 'post' : 'put'
+    const response = await axiosInstance[method](`/publisher/events/${id}`, eventData)
     return response.data
   },
   deleteEvent: async (id) => {

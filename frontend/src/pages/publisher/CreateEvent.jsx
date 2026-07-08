@@ -37,9 +37,16 @@ const CAT_EMOJI = {
   Other: ''
 }
 
+// const EMPTY_FORM = {
+//   title: '', category: 'Musik', date: '', location: '',
+//   description: '', image: '', price: '', capacity: '',
+// }
+
 const EMPTY_FORM = {
   title: '', category: 'Musik', date: '', location: '',
-  description: '', image: '', price: '', capacity: '',
+  description: '', price: '', capacity: '',
+  imageFile: null,      // Untuk menyimpan data file aslinya
+  imagePreview: '',     // Untuk menampilkan preview sementara
 }
 
 const loadMock = () => { const s = localStorage.getItem('pub_events'); return s ? JSON.parse(s) : null }
@@ -55,12 +62,41 @@ export default function CreateEvent() {
   const createMutation = useMutation({
     mutationFn: async (data) => {
       try {
-        const res = await eventApi.createEvent(data)
+        const formData = new FormData()
+        formData.append('title', data.title)
+        formData.append('category', data.category)
+        formData.append('date', data.date)
+        formData.append('location', data.location)
+        formData.append('description', data.description)
+        formData.append('price', data.price)
+        formData.append('quota', data.quota)
+        
+        if (data.imageFile) {
+          formData.append('image', data.imageFile)
+        } else {
+          formData.append('image_url', DEFAULT_IMAGES[data.category] || DEFAULT_IMAGES.Other)
+        }
+
+        const res = await eventApi.createEvent(formData)
         if (res?.success) return res.data
         throw new Error()
       } catch (err) {
         const curr = loadMock() || []
-        const newEvent = { ...data, id: 'loc-' + Date.now(), sold: 0, status: 'published', createdAt: new Date().toISOString() }
+        const fallbackImageUrl = data.imageFile ? URL.createObjectURL(data.imageFile) : (DEFAULT_IMAGES[data.category] || DEFAULT_IMAGES.Other)
+        const newEvent = {
+          title: data.title,
+          category: data.category,
+          date: data.date,
+          location: data.location,
+          description: data.description,
+          price: data.price,
+          quota: data.quota,
+          id: 'loc-' + Date.now(),
+          sold: 0,
+          status: 'published',
+          createdAt: new Date().toISOString(),
+          image_url: fallbackImageUrl,
+        }
         saveMock([newEvent, ...curr])
         throw err
       }
@@ -89,6 +125,7 @@ export default function CreateEvent() {
   const handleSubmit = (ev) => {
     ev.preventDefault()
     if (!validate()) return
+
     const payload = {
       title: form.title,
       category: form.category,
@@ -97,11 +134,37 @@ export default function CreateEvent() {
       description: form.description,
       price: Number(form.price),
       quota: Number(form.capacity),
-      image_url: form.image.trim() || DEFAULT_IMAGES[form.category] || DEFAULT_IMAGES.Other,
+      imageFile: form.imageFile,
     }
     createMutation.mutate(payload)
   }
 
+  // Function untuk handle minimal tanggal yang diinput
+  const getTodayDateTime = () => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')      
+    const hours = String(today.getHours()).padStart(2, '0')
+    const minutes = String(today.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
+  // Function handler untuk upload gambar
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validasi tipe file (opsional tapi disarankan)
+      if (!file.type.startsWith('image/')) {
+        toast.error('Harap upload file berupa gambar.')
+        return
+      }
+
+      setField('imageFile', file)
+      // Buat URL sementara (blob) agar gambar bisa dipreview langsung
+      setField('imagePreview', URL.createObjectURL(file))
+    }
+  }
   const isSaving = createMutation.isPending
 
   return (
@@ -154,6 +217,7 @@ export default function CreateEvent() {
                 className="pd-field__input"
                 type="datetime-local"
                 value={form.date}
+                min={getTodayDateTime()}
                 onChange={e => setField('date', e.target.value)}
               />
               {formErrors.date && <p className="pd-field__err">{formErrors.date}</p>}
@@ -227,33 +291,83 @@ export default function CreateEvent() {
             </div>
           </div>
         </section>
-
-        {/* Section: Gambar */}
+      
+        {/* Section: Gambar */}  
         <section className="pd-form-section">
           <h3 className="pd-form-section__title">
             <span className="pd-form-section__num">3</span>
             Gambar Banner <span className="pd-form-section__opt">(opsional)</span>
           </h3>
-          <div className="pd-form-grid">
+          <div className="pd-form-grid">            
             <div className="pd-field pd-field--full">
-              <label className="pd-field__label" htmlFor="f-image">URL Gambar</label>
-              <input
-                id="f-image"
-                className="pd-field__input"
-                type="url"
-                placeholder="https://images.unsplash.com/photo-… (kosongkan untuk gambar default)"
-                value={form.image}
-                onChange={e => setField('image', e.target.value)}
-              />
-              <p className="pd-field__hint">Kosongkan untuk menggunakan gambar default sesuai kategori.</p>
+              <label className="pd-field__label">Upload Dokumen</label>              
+              {/* Area kotak upload tiruan drag & drop */}
+              <div 
+                onClick={() => document.getElementById('f-image-upload').click()}
+                style={{
+                  border: '2px dashed #6366f1', 
+                  borderRadius: '16px',
+                  padding: '40px 24px',
+                  textAlign: 'center',
+                  backgroundColor: '#f8fafc',
+                  cursor: 'pointer',
+                  marginTop: '8px',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+              >
+                {/* Ikon Upload */}
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px' }}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                
+                <h4 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '600', color: '#1e293b' }}>
+                  Upload Dokumen
+                </h4>
+                <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
+                  Format: JPG, JPEG, PNG 
+                </p>
+                {/* <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
+                  Drag & drop file di sini<br />atau
+                </p>                 */}
+                {/* Tombol palsu untuk visual */}
+                <span style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#3b82f6', 
+                  // backgroundImage: 'linear-gradient(to right, #6366f1, #06b6d)',
+                  color: 'white', 
+                  padding: '10px 20px', 
+                  borderRadius: '8px', 
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  Pilih File dari Komputer
+                </span>
+                {/* Input file asli yang disembunyikan */}
+                <input
+                  id="f-image-upload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
+              </div>
             </div>
-            {(form.image || DEFAULT_IMAGES[form.category]) && (
+            {/* Preview Section */}
+            {(form.imagePreview || DEFAULT_IMAGES[form.category]) && (
               <div className="pd-field pd-field--full">
                 <p className="pd-field__label">Preview</p>
-                <div className="pd-img-preview">
+                <div className="pd-img-preview" style={{ marginTop: '8px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
                   <img
-                    src={form.image || DEFAULT_IMAGES[form.category]}
+                    src={form.imagePreview || DEFAULT_IMAGES[form.category]}
                     alt="preview"
+                    style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', display: 'block' }}
                     onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
                   />
                 </div>
@@ -261,6 +375,8 @@ export default function CreateEvent() {
             )}
           </div>
         </section>
+
+
 
         {/* Form footer */}
         <div className="pd-modal__footer">

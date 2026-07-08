@@ -1,3 +1,6 @@
+// ABAIKAN KELAS INI KARENA TDK TERPAKAI
+// SEMENTARA TDK USAH DIHAPUS DULU
+
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'

@@ -37,21 +37,11 @@ export default function PublisherLayout() {
             {/* pakai NavLink agar muncul tampilan yang berbeda, kalau cuma pakai Nav saja tidak bisa */}
             <NavLink
               to="/publisher/dashboard"
-              className={({ isActive }) =>
-                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+              className={({ isActive }) => {
+                const isDashboardActive = isActive || location.pathname.startsWith('/publisher/events/update')
+                return `block px-4 py-2.5 rounded-lg text-sm font-medium ${isDashboardActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+              }                
             } >Dashboard</NavLink>
-
-            {/* <NavLink
-              to="/publisher/coba"
-              className={({ isActive }) =>
-                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
-            } >Coba </NavLink>
-
-            <NavLink
-              to="/publisher/cobalagi"
-              className={({ isActive }) =>
-                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
-            } >Coba Lagi </NavLink> */}
 
             <NavLink
               to="/publisher/orders"
