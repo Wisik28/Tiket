@@ -1,20 +1,56 @@
-import React from 'react'
-import { useQuery } from '@tanstack/react-query'
+import React, { useRef, useEffect, useMemo } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ticketApi } from '../../api/ticketApi'
 
 export default function RiwayatPembelian() {
   const navigate = useNavigate()
-  const { data: purchases = [], isLoading, error } = useQuery({
+  const bottomRef = useRef(null)
+
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
     queryKey: ['my-tickets'],
-    queryFn: async () => {
-      const res = await ticketApi.getMyTickets()
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await ticketApi.getMyTickets(pageParam)
       if (res?.success && Array.isArray(res?.data)) {
-        return res.data
+        return res
       }
       throw new Error(res?.message || 'Gagal mengambil riwayat pembelian')
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.pagination?.has_more) {
+        return (lastPage.pagination.current_page || 1) + 1
+      }
+      return undefined
     }
   })
+
+  const purchases = useMemo(
+    () => data?.pages.flatMap((page) => page.data) ?? [],
+    [data]
+  )
+
+  // IntersectionObserver: auto-fetch next page saat scroll ke bawah
+  useEffect(() => {
+    const el = bottomRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const formatRupiah = (n) => {
     return new Intl.NumberFormat('id-ID', {
@@ -125,6 +161,23 @@ export default function RiwayatPembelian() {
                 </div>
               </div>
             ))}
+
+            {/* Sentinel element untuk trigger infinite scroll */}
+            <div ref={bottomRef} className="h-1" />
+
+            {/* Spinner saat load halaman berikutnya */}
+            {isFetchingNextPage && (
+              <div className="py-6 flex justify-center">
+                <div className="w-8 h-8 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin" />
+              </div>
+            )}
+
+            {/* Pesan ketika semua data sudah dimuat */}
+            {!hasNextPage && purchases.length > 0 && (
+              <div className="py-5 text-center text-sm text-gray-400">
+                Semua riwayat pembelian telah dimuat
+              </div>
+            )}
           </div>
         )}
       </div>

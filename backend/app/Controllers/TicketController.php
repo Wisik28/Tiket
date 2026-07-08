@@ -15,19 +15,23 @@ class TicketController
 
     /**
      * GET /api/user/tickets
-     * Mengambil riwayat transaksi tiket milik user yang login
+     * Mengambil riwayat transaksi tiket milik user yang login dengan pagination
      */
     public function index()
     {
         try {
             $userId = $_REQUEST['user']['id'];
-            $tickets = $this->ticketService->getUserTickets($userId);
+            $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+            $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+
+            $result = $this->ticketService->getUserTickets($userId, $page, $limit);
 
             http_response_code(200);
             echo json_encode([
                 'success' => true,
                 'message' => 'Tickets retrieved successfully.',
-                'data'    => $tickets
+                'data'    => $result['tickets'],
+                'pagination' => $result['pagination']
             ]);
         } catch (\Exception $e) {
             http_response_code(500);

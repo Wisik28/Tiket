@@ -63,9 +63,20 @@ class Ticket
     }
 
     /**
-     * Ambil semua transaksi tiket milik user tertentu beserta detail event-nya
+     * Hitung total tiket milik user
      */
-    public static function findAllByUser(string $userId): array
+    public static function countByUser(string $userId): int
+    {
+        $collection = self::getCollection();
+        return $collection->countDocuments([
+            'user_id' => new \MongoDB\BSON\ObjectId($userId)
+        ]);
+    }
+
+    /**
+     * Ambil semua transaksi tiket milik user tertentu beserta detail event-nya dengan pagination
+     */
+    public static function findAllByUser(string $userId, int $skip = 0, int $limit = 10): array
     {
         $collection = self::getCollection();
         $cursor = $collection->aggregate([
@@ -106,6 +117,12 @@ class Ticket
                 '$sort' => [
                     'createdAt' => -1
                 ]
+            ],
+            [
+                '$skip' => $skip
+            ],
+            [
+                '$limit' => $limit
             ]
         ]);
         return $cursor->toArray();

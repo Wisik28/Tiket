@@ -46,12 +46,23 @@ class EventService
     }
 
     /**
-     * Ambil semua event (untuk user publik)
+     * Ambil semua event (untuk user publik) dengan pagination
      */
-    public function getPublicEvents(): array
+    public function getPublicEvents(int $page = 1, int $limit = 12): array
     {
-        $events = Event::findAll();
-        return array_map([$this, 'formatEvent'], $events);
+        $skip = ($page - 1) * $limit;
+        $events = Event::findAll($skip, $limit);
+        $total = Event::countAll();
+
+        return [
+            'events' => array_map([$this, 'formatEvent'], $events),
+            'pagination' => [
+                'total' => $total,
+                'current_page' => $page,
+                'limit' => $limit,
+                'has_more' => ($skip + count($events)) < $total
+            ]
+        ];
     }
 
     /**

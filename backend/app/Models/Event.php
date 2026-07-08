@@ -23,14 +23,27 @@ class Event
     }
 
     /**
-     * Ambil semua event (untuk user)
+     * Hitung semua event (untuk user)
      */
-    public static function findAll(): array
+    public static function countAll(): int
+    {
+        $collection = self::getCollection();
+        return $collection->countDocuments([]);
+    }
+
+    /**
+     * Ambil semua event (untuk user) dengan pagination
+     */
+    public static function findAll(int $skip = 0, int $limit = 12): array
     {
         $collection = self::getCollection();
         $cursor = $collection->find(
             [], // Tanpa filter publisher_id, agar semua event tampil
-            ['sort' => ['createdAt' => -1]]
+            [
+                'sort' => ['createdAt' => -1],
+                'skip' => $skip,
+                'limit' => $limit
+            ]
         );
         return $cursor->toArray();
     }

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
 import { toast } from 'react-hot-toast'
@@ -137,24 +137,62 @@ export default function UserDashboard() {
   const [filterCat, setFilterCat] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  const { data: events = [], isLoading } = useQuery({
+  const bottomRef = useRef(null)
+
+  const {
+    data: eventsData,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
     queryKey: ['user-events'],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       try {
-        const res = await eventApi.getUserEvents()
-        if (res?.success && Array.isArray(res?.data)) return res.data
+        const res = await eventApi.getUserEvents(pageParam)
+        if (res?.success && Array.isArray(res?.data)) return res
         throw new Error('Data tidak valid')
       } catch (err) {
-        const local = loadMock()
-        if (!local) {
-          saveMock(MOCK_EVENTS);
-          return MOCK_EVENTS
+        if (pageParam === 1) {
+          const local = loadMock()
+          if (!local) {
+            saveMock(MOCK_EVENTS)
+            return { data: MOCK_EVENTS, pagination: { has_more: false } }
+          }
+          return { data: local, pagination: { has_more: false } }
         }
-        return local;
+        throw err
       }
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.pagination?.has_more) {
+        return (lastPage.pagination.current_page || 1) + 1
+      }
+      return undefined
     },
     staleTime: 30000,
   })
+
+  const events = useMemo(
+    () => eventsData?.pages.flatMap((page) => page.data ?? []) ?? [],
+    [eventsData]
+  )
+
+  // IntersectionObserver: auto-fetch halaman berikutnya saat scroll ke bawah
+  useEffect(() => {
+    const el = bottomRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   // Stats
   // const stats = useMemo(() => ({
@@ -339,6 +377,24 @@ export default function UserDashboard() {
               </article>
             )
           })}
+        </div>
+      )}
+
+      {/* Sentinel element untuk trigger infinite scroll */}
+      <div ref={bottomRef} className="h-1" />
+
+      {/* Spinner saat load halaman berikutnya */}
+      {isFetchingNextPage && (
+        <div className="pd-loading">
+          <div className="pd-spinner" />
+          <span>Memuat event lainnya...</span>
+        </div>
+      )}
+
+      {/* Pesan ketika semua event sudah dimuat */}
+      {!hasNextPage && events.length > 0 && (
+        <div style={{ textAlign: 'center', padding: '1.5rem 0', color: '#94a3b8', fontSize: '0.875rem' }}>
+          Semua event telah dimuat
         </div>
       )}
 
