@@ -70,12 +70,23 @@ class TicketService
     }
 
     /**
-     * Mengambil riwayat pembelian tiket user
+     * Mengambil riwayat pembelian tiket user dengan pagination
      */
-    public function getUserTickets(string $userId): array
+    public function getUserTickets(string $userId, int $page = 1, int $limit = 10): array
     {
-        $tickets = Ticket::findAllByUser($userId);
-        return array_map([$this, 'formatTicket'], $tickets);
+        $skip = ($page - 1) * $limit;
+        $tickets = Ticket::findAllByUser($userId, $skip, $limit);
+        $total = Ticket::countByUser($userId);
+
+        return [
+            'tickets' => array_map([$this, 'formatTicket'], $tickets),
+            'pagination' => [
+                'total' => $total,
+                'current_page' => $page,
+                'limit' => $limit,
+                'has_more' => ($skip + count($tickets)) < $total
+            ]
+        ];
     }
 
     /**

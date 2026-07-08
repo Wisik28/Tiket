@@ -40,18 +40,22 @@ class EventController
 
     /**
      * GET /api/user/events
-     * Ambil semua event (untuk user)
+     * Ambil semua event (untuk user) dengan pagination
      */
     public function publicIndex()
     {
         try {
-            $events = $this->eventService->getPublicEvents();
+            $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+            $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 12;
+
+            $result = $this->eventService->getPublicEvents($page, $limit);
 
             http_response_code(200);
             echo json_encode([
                 'success' => true,
                 'message' => 'Events retrieved successfully.',
-                'data'    => $events
+                'data'    => $result['events'],
+                'pagination' => $result['pagination']
             ]);
         } catch (\Exception $e) {
             http_response_code(500);

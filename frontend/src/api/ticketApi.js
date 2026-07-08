@@ -13,8 +13,8 @@ export const ticketApi = {
     const response = await axiosInstance.get(`/orders/${id}`)
     return response.data
   },
-  getMyTickets: async () => {
-    const response = await axiosInstance.get('/user/tickets')
+  getMyTickets: async (page = 1) => {
+    const response = await axiosInstance.get(`/user/tickets?page=${page}`)
     return response.data
   },
   purchaseTicket: async (ticketData) => {
