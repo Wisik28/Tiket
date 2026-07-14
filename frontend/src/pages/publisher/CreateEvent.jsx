@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
@@ -59,6 +59,61 @@ export default function CreateEvent() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [formErrors, setFormErrors] = useState({})
 
+  useEffect(() => {
+    if (!window.L) return
+
+    // Fix leaflet default icon path in React/Vite
+    delete window.L.Icon.Default.prototype._getIconUrl
+    window.L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    })
+
+    // Default koordinat untuk leaflet
+    const defaultLat = -7.7956
+    const defaultLng = 110.3695
+    const map = window.L.map('map').setView([defaultLat, defaultLng], 13)
+
+    // Membuka leaflet yang sudah dipanggil di kelas index.html
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map)
+
+    const marker = window.L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map)
+
+    // Mengambil koordinat latitude & longitude saat marker digeser
+    const updateLocation = async (lat, lng) => {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`)
+        const data = await response.json()
+        if (data && data.display_name) {
+          setForm(p => ({ ...p, location: data.display_name }))
+        }
+      } catch (error) {
+        console.error('Error reverse geocoding:', error)
+      }
+    }
+
+    // Event listener saat marker digeser
+    marker.on('dragend', function () {
+      const position = marker.getLatLng()
+      updateLocation(position.lat, position.lng)
+    })
+
+    // Event listener saat marker diklik
+    map.on('click', function (e) {
+      marker.setLatLng(e.latlng)
+      updateLocation(e.latlng.lat, e.latlng.lng)
+    })
+
+    // Clean up map
+    return () => {
+      map.remove()
+    }
+  }, [])
+
+  // Menggunakan createMutation dari @tanstack/react-query untuk membuat event (serta upload gambar)
   const createMutation = useMutation({
     mutationFn: async (data) => {
       try {
@@ -167,7 +222,7 @@ export default function CreateEvent() {
   }
   const isSaving = createMutation.isPending
 
-  return (
+  return (    
     <div className="pd-create-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
       <header className="pd-create-header" style={{ marginBottom: '24px' }}>
         <h1 className="text-2xl font-bold text-gray-900">Tambah Event Baru</h1>
@@ -235,6 +290,20 @@ export default function CreateEvent() {
                 onChange={e => setField('location', e.target.value)}
               />
               {formErrors.location && <p className="pd-field__err">{formErrors.location}</p>}
+               {/* Input lokasi menggunakan map dari library leaflet  */}
+              <p className="text-xs text-gray-500 mt-2">
+                Anda juga bisa mengklik pada peta atau menggeser marker untuk mengisi input lokasi di atas secara otomatis:
+              </p>
+              <div 
+                id="map" 
+                style={{ 
+                  height: '320px', 
+                  borderRadius: '12px', 
+                  border: '1px solid #cbd5e1', 
+                  marginTop: '8px', 
+                  zIndex: 1 
+                }} 
+              />
             </div>
 
             {/* Deskripsi */}

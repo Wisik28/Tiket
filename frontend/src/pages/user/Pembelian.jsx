@@ -14,6 +14,7 @@ const createEmptyHolder = () => ({
   address: '',
 })
 
+// Function untuk pembelian
 export default function TempPembelian() {
   const { id: eventId } = useParams()
   const location = useLocation()
@@ -53,8 +54,8 @@ export default function TempPembelian() {
         )
       }
       
-      toast.success('Pembelian tiket berhasil!')
-      navigate('/user/riwayatPembelian')
+      toast.success('Pemesanan tiket berhasil, silakan lakukan pembayaran!')
+      navigate(`/user/pembayaran/${res.data.id}`, { state: { ticket: res.data } })
     },
     onError: (error) => {
       const message = error.response?.data?.message || 'Gagal memproses pembayaran'
@@ -62,6 +63,7 @@ export default function TempPembelian() {
     }
   })
 
+  // Handler toggle button untuk input data user otomatis (sesuai dengan data registrasi)
   const handleToggleProfileData = (checked) => {
     setUseProfileData(checked)
     if (checked && user) {
@@ -94,6 +96,7 @@ export default function TempPembelian() {
     }
   }
 
+  // Handler ketika user merubah field secara manual
   const handleFieldChange = (index, field, value) => {
     setHolders(prev => {
       const updated = [...prev]
@@ -107,11 +110,13 @@ export default function TempPembelian() {
     }
   }
 
+  // Handler button tambah untuk orang kedua dan seterusnya
   const handleAddHolder = () => {
     setHolders(p => [...p, createEmptyHolder()])
     setHolderErrors(p => [...p, {}])
   }
 
+  // Handler untuk button remove data orang kedua dan seterusnya
   const handleRemoveHolder = (index) => {
     setHolders(p => p.filter((_, i) => i !== index))
     setHolderErrors(p => p.filter((_, i) => i !== index))
@@ -164,6 +169,7 @@ export default function TempPembelian() {
     return newErrors.every(errors => Object.keys(errors).length === 0)
   }
 
+  // Handler button submit
   const handleSubmit = (ev) => {
     ev.preventDefault()
     if (!validate()) return

@@ -57,6 +57,7 @@ export default function CreateEvent() {
 
   const [form, setForm] = useState(EMPTY_FORM)
   const [formErrors, setFormErrors] = useState({})
+  const [hasCenteredMap, setHasCenteredMap] = useState(false)
 
   // Query detail event
   const { data: initialEvent, isLoading: isFetching } = useQuery({
@@ -68,6 +69,72 @@ export default function CreateEvent() {
     },
     initialData: state?.event,
   })
+
+  useEffect(() => {
+    if (!window.L) return
+
+    // Fix leaflet default icon path in React/Vite
+    delete window.L.Icon.Default.prototype._getIconUrl
+    window.L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    })
+
+    // Default koordinat untuk leaflet
+    const defaultLat = -7.7956
+    const defaultLng = 110.3695
+
+    const map = window.L.map('map').setView([defaultLat, defaultLng], 13)
+
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map)
+
+    const marker = window.L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map)
+
+    const updateLocation = async (lat, lng) => {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`)
+        const data = await response.json()
+        if (data && data.display_name) {
+          setForm(p => ({ ...p, location: data.display_name }))
+        }
+      } catch (error) {
+        console.error('Error reverse geocoding:', error)
+      }
+    }
+
+    marker.on('dragend', function () {
+      const position = marker.getLatLng()
+      updateLocation(position.lat, position.lng)
+    })
+
+    map.on('click', function (e) {
+      marker.setLatLng(e.latlng)
+      updateLocation(e.latlng.lat, e.latlng.lng)
+    })
+
+    // If an initial location is loaded, geocode it to center the map on it
+    if (initialEvent?.location && !hasCenteredMap) {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(initialEvent.location)}&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat)
+            const lon = parseFloat(data[0].lon)
+            map.setView([lat, lon], 14)
+            marker.setLatLng([lat, lon])
+            setHasCenteredMap(true)
+          }
+        })
+        .catch(err => console.error('Geocoding error:', err))
+    }
+
+    return () => {
+      map.remove()
+    }
+  }, [initialEvent, hasCenteredMap])
 
   // Set form state when initialEvent is loaded
   useEffect(() => {
@@ -259,6 +326,20 @@ export default function CreateEvent() {
                 onChange={e => setField('location', e.target.value)}
               />
               {formErrors.location && <p className="pd-field__err">{formErrors.location}</p>}
+              
+              <p className="text-xs text-gray-500 mt-2">
+                Anda juga bisa mengklik pada peta atau menggeser marker untuk mencari dan mengisi nama lokasi secara otomatis:
+              </p>
+              <div 
+                id="map" 
+                style={{ 
+                  height: '320px', 
+                  borderRadius: '12px', 
+                  border: '1px solid #cbd5e1', 
+                  marginTop: '8px', 
+                  zIndex: 1 
+                }} 
+              />
             </div>
 
             {/* Deskripsi */}

@@ -55,9 +55,16 @@ class Ticket
     public static function updateStatusByOrderId(string $orderId, string $status): bool
     {
         $collection = self::getCollection();
+        $updateFields = [
+            'status' => $status,
+            'updatedAt' => new \MongoDB\BSON\UTCDateTime()
+        ];
+        if ($status === 'paid') {
+            $updateFields['payment_date'] = new \MongoDB\BSON\UTCDateTime();
+        }
         $result = $collection->updateOne(
             ['payment_id' => $orderId],
-            ['$set' => ['status' => $status, 'updatedAt' => new \MongoDB\BSON\UTCDateTime()]]
+            ['$set' => $updateFields]
         );
         return $result->getModifiedCount() > 0;
     }

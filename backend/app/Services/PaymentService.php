@@ -54,6 +54,10 @@ class PaymentService
                 'first_name' => $customer['name'] ?? 'Customer',
                 'email'      => $customer['email'] ?? '',
             ],
+            'custom_expiry' => [ // setting waktu expired selama 10 menit ketika user belum melakukan pembayaran
+                'expiry_duration' => 10,
+                'unit'            => 'minute',
+            ],
         ];
 
         $response = $this->sendRequest('/charge', $payload);

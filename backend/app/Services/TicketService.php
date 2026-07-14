@@ -31,10 +31,14 @@ class TicketService
             $data['event_id'] = (string) $data['event_id'];
         }
 
-        foreach (['createdAt', 'updatedAt'] as $field) {
+        foreach (['createdAt', 'updatedAt', 'payment_date'] as $field) {
             if (isset($data[$field]) && $data[$field] instanceof \MongoDB\BSON\UTCDateTime) {
                 $data[$field] = $data[$field]->toDateTime()->format(\DateTime::ATOM);
             }
+        }
+
+        if (isset($data['status']) && $data['status'] === 'paid' && !isset($data['payment_date'])) {
+            $data['payment_date'] = $data['updatedAt'] ?? null;
         }
 
         // Format nested event detail jika ada (dari lookup)
@@ -74,6 +78,23 @@ class TicketService
      */
     public function getUserTickets(string $userId, int $page = 1, int $limit = 10): array
     {
+        // Jika user tidak membayar lebih dari 10 menit maka status akan berubah menjadi failed (gagal)
+        $collection = Ticket::getCollection();
+        $tenMinutesAgo = new \MongoDB\BSON\UTCDateTime((time() - 600) * 1000);
+        $collection->updateMany(
+            [
+                'user_id' => new \MongoDB\BSON\ObjectId($userId),
+                'status' => 'pending',
+                'createdAt' => ['$lt' => $tenMinutesAgo]
+            ],
+            [
+                '$set' => [
+                    'status' => 'failed',
+                    'updatedAt' => new \MongoDB\BSON\UTCDateTime()
+                ]
+            ]
+        );
+
         $skip = ($page - 1) * $limit;
         $tickets = Ticket::findAllByUser($userId, $skip, $limit);
         $total = Ticket::countByUser($userId);
