@@ -38,15 +38,19 @@ export default function PublisherLayout() {
             <NavLink
               to="/publisher/dashboard"
               className={({ isActive }) => {
-                const isDashboardActive = isActive || location.pathname.startsWith('/publisher/events/update')
+                const isDashboardActive = isActive ||  
+                  location.pathname.startsWith('/publisher/events/update') ||
+                  location.pathname.startsWith('/publisher/events/create')
                 return `block px-4 py-2.5 rounded-lg text-sm font-medium ${isDashboardActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
               }                
             } >Dashboard</NavLink>
 
             <NavLink
               to="/publisher/orders"
-              className={({ isActive }) =>
-                `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+              className={({ isActive }) => {
+                // const isDashboardActive = isActive || location.pathname.startsWith('/publisher/events/create')
+                return `block px-4 py-2.5 rounded-lg text-sm font-medium ${isActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
+              }
             } >Daftar Pesanan </NavLink>
 
             <NavLink

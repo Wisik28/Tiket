@@ -38,7 +38,9 @@ export default function UserLayout() {
             <NavLink
               to="/user/dashboard"
               className={({ isActive }) => {
-                const isDashboardActive = isActive || location.pathname.startsWith('/user/pembelian')
+                const isDashboardActive = isActive || 
+                location.pathname.startsWith('/user/pembelian') ||
+                location.pathname.startsWith('/user/pembayaran')
                 return `block px-4 py-2.5 rounded-lg text-sm font-medium ${isDashboardActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
               }                
             } >Dashboard</NavLink>

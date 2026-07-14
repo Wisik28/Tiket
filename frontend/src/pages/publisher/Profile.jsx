@@ -55,7 +55,7 @@ export default function Profile() {
               <p className="text-gray-500 text-sm mt-1">{user?.email || '—'}</p>
             </div>
             <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+              <span className="items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                 <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>                
                 {user?.role === 'user' ? "Pembeli" : user?.role === 'admin' ? "Admin" : "Penjual/Publisher"}
               </span>

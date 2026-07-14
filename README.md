@@ -200,7 +200,7 @@ git push -u origin feat/tampilan-upload
 1. Buka halaman repositori di GitHub.
 2. Anda akan melihat tombol kuning bertuliskan **"Compare & pull request"** untuk branch yang baru saja Anda push. Klik tombol tersebut.
 3. Berikan deskripsi yang jelas tentang perubahan yang Anda lakukan pada PR tersebut.
-4. Minta anggota tim lainnya untuk melakukan *review*.
+4. Minta anggota tim lainnya untuk melakukan *review*.g
 5. Setelah disetujui (dan tidak ada konflik), PR dapat di-merge ke branch `main`.
 
 
