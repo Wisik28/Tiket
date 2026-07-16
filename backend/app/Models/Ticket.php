@@ -134,4 +134,32 @@ class Ticket
         ]);
         return $cursor->toArray();
     }
+
+    /**
+     * Hitung total tiket terjual untuk suatu event dengan status 'paid'
+     */
+    public static function getSoldQuantity(string $eventId): int
+    {
+        $collection = self::getCollection();
+        $cursor = $collection->aggregate([
+            [
+                '$match' => [
+                    'event_id' => new \MongoDB\BSON\ObjectId($eventId),
+                    'status' => 'paid'
+                ]
+            ],
+            [
+                '$group' => [
+                    '_id' => null,
+                    'total' => ['$sum' => '$quantity']
+                ]
+            ]
+        ]);
+        $result = $cursor->toArray();
+        if (empty($result)) {
+            return 0;
+        }
+        $first = (array)$result[0];
+        return isset($first['total']) ? (int)$first['total'] : 0;
+    }
 }

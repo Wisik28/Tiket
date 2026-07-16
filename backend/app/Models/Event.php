@@ -75,6 +75,7 @@ class Event
             'date'         => $data['date'],
             'price'        => (float) $data['price'],
             'quota'        => (int) $data['quota'],
+            'capacity'     => isset($data['capacity']) ? (int) $data['capacity'] : (int) $data['quota'],
             'category'     => $data['category'],
             'image_url'    => $data['image_url'] ?? null,
             'publisher_id' => new \MongoDB\BSON\ObjectId($data['publisher_id']),
@@ -102,6 +103,7 @@ class Event
             'date'        => $data['date'] ?? null,
             'price'       => isset($data['price']) ? (float) $data['price'] : null,
             'quota'       => isset($data['quota']) ? (int) $data['quota'] : null,
+            'capacity'    => isset($data['capacity']) ? (int) $data['capacity'] : null,
             'category'    => $data['category'] ?? null,
             'image_url'   => $data['image_url'] ?? null,
         ], fn($v) => $v !== null);

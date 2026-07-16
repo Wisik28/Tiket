@@ -242,20 +242,22 @@ export default function UserDashboard() {
       {/* Toolbar */}
       <div className="pd-toolbar">
         <div className="pd-search">
-          <span className="pd-search__icon"><SearchIcon /></span>
-          <input
+          <span className="pd-search__icon">
+            <img src="/assets/search.png" alt="Search" />
+          </span>          
+          <input          
             id="event-search"
             type="text"
             className="pd-search__input"
             placeholder="Cari nama event atau lokasi…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-          />
-          {search && (
+          />          
+          {/* {search && (
             <button className="pd-search__clear" onClick={() => setSearch('')}>
-              <CloseIcon />
+              <img src="/assets/cross.png" alt="Clear" />
             </button>
-          )}
+          )} */}
         </div>
 
         <div className="pd-filters">
@@ -280,19 +282,21 @@ export default function UserDashboard() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="pd-empty">
-          <div className="pd-empty__icon"><TicketIcon /></div>
+          <div className="pd-empty__icon">
+            <img src="/assets/no-results.png" alt="Empty" />
+          </div>
           <h3>Data tidak ditemukan</h3>
           <p>
             {search || filterCat !== 'All'
               ? 'Silahkan ubah filter pencarian Anda'
-              :''}
+              : ''}
           </p>          
         </div>
       ) : (
         <div className="pd-event-grid">
           {filtered.map(event => {
             const sold = Number(event.sold || 0)
-            const cap = Number(event.quota || event.capacity || 0)
+            const cap = Number(event.capacity || event.quota || 0)
             const pct = cap > 0 ? Math.min((sold / cap) * 100, 100) : 0
             const isFull = cap > 0 && sold >= cap
             const isHot = pct >= 75 && !isFull
@@ -348,33 +352,20 @@ export default function UserDashboard() {
                     </div>
                     <div className="pd-card__kpiuser">
                       <span className="pd-card__kpiuser-lbl">Kapasitas</span>
-                      <span className="pd-card__kpiuser-val">{Number(event.quota || event.capacity).toLocaleString('id-ID')}</span>
+                      <span className="pd-card__kpiuser-val">{Number(event.capacity || event.quota).toLocaleString('id-ID')}</span>
                     </div>
                   </div>
-                </div>
-
-                {/* Footer */}
-                <div className="pd-card__footer">                  
-                  <div className="pd-card__actions">
-                    <Link
-                      to={`/user/pembelian/${event.id}`}
-                      // sementara diganti ini dlu nanti baliikin pake yg diatas
-                      // to={`/user/tempPembelian/${event.id}`}
-                      state={{ event }}
-                      className="pd-icon-btn pd-icon-btn--edit"
-                      title="Edit Event"
-                      id={`btn-edit-${event.id}`}
-                    > <EditIcon /> Beli
-                    </Link>
-                    {/* <button
-                      className="pd-icon-btn pd-icon-btn--del"
-                      onClick={() => setDeleteTarget(event)}
-                      title="Hapus Event"
-                      id={`btn-delete-${event.id}`}
-                    >
-                      <TrashIcon /> Hapus
-                    </button> */}
-                  </div>
+                  {/* Centered Purchase Button */}
+                  <Link
+                    to={`/user/pembelian/${event.id}`}                      
+                    state={{ event }}
+                    className="pd-purchase-btn-centered"
+                    title="Beli Tiket"
+                    id={`btn-purchase-${event.id}`}
+                  >
+                    <img src="/assets/cart.png" alt="Cart" className="pd-purchase-btn-icon" />
+                    Beli Tiket
+                  </Link>
                 </div>
               </article>
             )

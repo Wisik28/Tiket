@@ -150,13 +150,13 @@ export default function Pembayaran() {
               <div className="flex-1">
                 <p className="text-xxs text-gray-400 font-semibold uppercase tracking-wider">Nomor Virtual Account</p>
                 <p className="text-lg font-mono font-bold text-gray-800 tracking-wider select-all mt-0.5">
-                  {ticket.va_number || '—'}
+                  {ticket.va_number}
                 </p>
               </div>
               {ticket.va_number && (
                 <button
                   onClick={handleCopyVA}
-                  className="p-2.5 bg-white hover:bg-gray-100 text-indigo-600 border border-gray-200 shadow-sm rounded-xl transition duration-200 flex items-center justify-center cursor-pointer active:scale-95"
+                  className="p-2.5 text-black hover:bg-gray-100 text-indigo-600 border border-gray-200 shadow-sm rounded-xl transition duration-200 flex items-center justify-center cursor-pointer active:scale-95"
                   title="Salin No VA"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -179,9 +179,9 @@ export default function Pembayaran() {
               )}
               <div className="flex-1 min-w-0">
                 <span className="inline-block px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xxs font-bold uppercase tracking-wider">
-                  {event.category}
+                  {event.title}
                 </span>
-                <h4 className="text-sm font-bold text-gray-800 truncate mt-1">{event.title}</h4>
+                <h4 className="text-sm font-bold text-gray-800 truncate mt-1">{event.category}</h4>
                 <p className="text-xs text-gray-500 mt-0.5">{ticket.quantity} Tiket</p>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function Pembayaran() {
       <div className="space-y-3">
         <button
           onClick={() => {
-            toast.success('Memeriksa status pembayaran...')
+            // toast.success('Memeriksa status pembayaran...')
             navigate('/user/riwayatPembelian')
           }}
           className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:from-indigo-700 hover:to-purple-700 transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"

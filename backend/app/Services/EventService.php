@@ -33,6 +33,16 @@ class EventService
             }
         }
 
+        $eventId = $data['id'] ?? (isset($event->_id) ? (string)$event->_id : null);
+        if ($eventId) {
+            $sold = \App\Models\Ticket::getSoldQuantity($eventId);
+            $data['sold'] = $sold;
+            $data['capacity'] = isset($data['capacity']) ? (int)$data['capacity'] : ((int)($data['quota'] ?? 0) + $sold);
+        } else {
+            $data['sold'] = 0;
+            $data['capacity'] = (int)($data['quota'] ?? 0);
+        }
+
         return $data;
     }
 
@@ -108,6 +118,7 @@ class EventService
 
         // Tambahkan publisher_id dari JWT
         $data['publisher_id'] = $publisherId;
+        $data['capacity'] = (int) $data['quota'];
 
         $event = Event::create($data);
         return $this->formatEvent($event);
@@ -134,8 +145,16 @@ class EventService
             throw new \InvalidArgumentException('Price must be a non-negative number.', 400);
         }
 
-        if (isset($data['quota']) && (!is_numeric($data['quota']) || (int) $data['quota'] < 1)) {
-            throw new \InvalidArgumentException('Quota must be a positive integer.', 400);
+        if (isset($data['quota'])) {
+            if (!is_numeric($data['quota']) || (int) $data['quota'] < 1) {
+                throw new \InvalidArgumentException('Quota must be a positive integer.', 400);
+            }
+            $newCapacity = (int) $data['quota'];
+            $data['capacity'] = $newCapacity;
+
+            // Hitung sisa kuota (kapasitas baru - jumlah tiket terjual)
+            $sold = \App\Models\Ticket::getSoldQuantity($id);
+            $data['quota'] = max(0, $newCapacity - $sold);
         }
 
         Event::update($id, $data);

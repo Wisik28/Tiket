@@ -44,26 +44,34 @@ const MapPinIcon = () => (
 )
 
 const TicketIcon = () => (
-  <svg viewBox='0 0 24 24' fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 9a3 3 0 0 1 0 12v1a2 2 0 0 0-2-2V10a2 2 0 0 0 2-2zm12-6H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" /><polyline points="7 10 9 12 17 4" />
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
+    <path d="M13 5v14" strokeDasharray="3 3" />
   </svg>
 )
 
 const UsersIcon = () => (
   <svg viewBox='0 0 24 24' fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 9a3 3 0 0 1 0 12v1a2 2 0 0 0-2-2V10a2 2 0 0 0 2-2zm12-6H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" /><polyline points="7 10 9 12 17 4" />
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
   </svg>
 )
 
 const RevenueIcon = () => (
-  <svg viewBox='0 0 24 24' fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 9a3 3 0 0 1 0 12v1a2 2 0 0 0-2-2V10a2 2 0 0 0 2-2zm12-6H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" /><polyline points="7 10 9 12 17 4" />
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="6" width="20" height="12" rx="2" />
+    <circle cx="12" cy="12" r="2" />
+    <path d="M6 12h.01M18 12h.01" />
   </svg>
 )
 
 const StockIcon = () => (
-  <svg viewBox='0 0 24 24' fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 9a3 3 0 0 1 0 12v1a2 2 0 0 0-2-2V10a2 2 0 0 0 2-2zm12-6H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" /><polyline points="7 10 9 12 17 4" />
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 4h14a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V6a2 2 0 0 1 2-2z" opacity="0.4" />
+    <path d="M3 8h14a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V10a2 2 0 0 1 2-2z" />
+    <path d="M11 8v10" strokeDasharray="2 2" />
   </svg>
 )
 
@@ -208,7 +216,7 @@ export default function PublisherDashboard() {
     total: events.length,
     sold: events.reduce((s, e) => s + Number(e.sold || 0), 0),
     revenue: events.reduce((s, e) => s + Number(e.sold || 0) * Number(e.price || 0), 0),
-    stock: events.reduce((s, e) => s + Math.max(0, Number(e.quota || e.capacity || 0) - Number(e.sold || 0)), 0),
+    stock: events.reduce((s, e) => s + Math.max(0, Number(e.capacity || e.quota || 0) - Number(e.sold || 0)), 0),
   }), [events])
 
   // Filtered
@@ -253,9 +261,9 @@ export default function PublisherDashboard() {
           <h1 className="pd-header__title">Kelola Event &amp; Tiket</h1>
           <p className="pd-header__sub">Publikasikan event, atur tiket, dan pantau penjualan secara real-time.</p>
         </div>
-        <Link to="/publisher/events/create" className="pd-btn pd-btn--primary pd-btn--lg">
+        {/* <Link to="/publisher/events/create" className="pd-btn pd-btn--primary pd-btn--lg">
           Buat Acara Baru
-        </Link>
+        </Link> */}
       </header>
 
 
@@ -269,7 +277,7 @@ export default function PublisherDashboard() {
           </div>
         </div>
         <div className="pd-stat">
-          <div className="pd-stat__icon"><UsersIcon /></div>
+          <div className="pd-stat__icon"><TicketIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num">{stats.sold.toLocaleString('id-ID')}</span>
             <span className="pd-stat__lbl">Tiket Terjual</span>
@@ -286,7 +294,7 @@ export default function PublisherDashboard() {
           <div className="pd-stat__icon"><StockIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num">{stats.stock.toLocaleString('id-ID')}</span>
-            <span className="pd-stat__lbl">Sisa Stok</span>
+            <span className="pd-stat__lbl">Total Sisa Kuota</span>
           </div>
         </div>
       </div>
@@ -295,7 +303,9 @@ export default function PublisherDashboard() {
       {/* Toolbar */}
       <div className="pd-toolbar">
         <div className="pd-search">
-          <span className="pd-search__icon"><SearchIcon /></span>
+          <span className="pd-search__icon">
+            <img src="/assets/search.png" alt ="Search" />    
+          </span>
           <input
             id="event-search"
             type="text"
@@ -303,12 +313,7 @@ export default function PublisherDashboard() {
             placeholder="Cari nama event atau lokasi…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-          />
-          {search && (
-            <button className="pd-search__clear" onClick={() => setSearch('')}>
-              <CloseIcon />
-            </button>
-          )}
+          />          
         </div>
 
         <div className="pd-filters">
@@ -333,7 +338,9 @@ export default function PublisherDashboard() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="pd-empty">
-          <div className="pd-empty__icon"><TicketIcon /></div>
+          <div className="pd-empty__icon">
+            <img src="/assets/no-results.png" alt="Empty" />
+          </div>
           <h3>Data tidak ditemukan</h3>
           <p>
             {search || filterCat !== 'All'
@@ -351,7 +358,7 @@ export default function PublisherDashboard() {
         <div className="pd-event-grid">
           {filtered.map(event => {
             const sold = Number(event.sold || 0)
-            const cap = Number(event.quota || event.capacity || 0)
+            const cap = Number(event.capacity || event.quota || 0)
             const pct = cap > 0 ? Math.min((sold / cap) * 100, 100) : 0
             const isFull = cap > 0 && sold >= cap
             const isHot = pct >= 75 && !isFull
@@ -407,7 +414,7 @@ export default function PublisherDashboard() {
                     </div>
                     <div className="pd-card__kpi">
                       <span className="pd-card__kpi-lbl">Kapasitas</span>
-                      <span className="pd-card__kpi-val">{Number(event.quota || event.capacity).toLocaleString('id-ID')}</span>
+                      <span className="pd-card__kpi-val">{Number(event.capacity || event.quota).toLocaleString('id-ID')}</span>
                     </div>
                     <div className="pd-card__kpi">
                       <span className="pd-card__kpi-lbl">Terjual</span>
