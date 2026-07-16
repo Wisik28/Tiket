@@ -162,15 +162,15 @@ export default function DetailRiwayat() {
         <div className="p-6 md:p-8 bg-gray-50/50 flex flex-col md:flex-row gap-8 items-center justify-between">
           <div className="space-y-4 w-full md:w-auto flex-1">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">Rincian Transaksi</h3>
-            
+            {/* Hanya menampilkan id transaksi ketika payment berhasil */}
             <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              {purchase.status === 'paid' && (
+                <div>
+                  <p className="text-gray-400 font-medium">ID Transaksi</p>
+                  <p className="font-mono font-bold text-gray-800 mt-0.5">{purchase.id}</p>
+                </div>
+              )}
               <div>
-                <p className="text-gray-400 font-medium">ID Transaksi</p>
-                <p className="font-mono font-bold text-gray-800 mt-0.5">{purchase.id}</p>
-              </div>
-              <div>
-                {/* nanti harus dirubah sehingga dia manggil variabel saja (lunas/gagal)
-                hal ini diperbaiki setelah payment gateway selesai dibuat */}
                 <p className="text-gray-400 font-medium">Status Pembayaran</p>
                 {purchase.status === 'paid' ? (
                   <span className="items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100 mt-1">

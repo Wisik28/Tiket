@@ -1,12 +1,7 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Publisher Dashboard – Dashboard.css
-   Modern Event Ticketing Platform Aesthetic
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* ── Google Font ──────────────────────────────────────────────────── */
+/* Google font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ── Design Tokens ────────────────────────────────────────────────── */
+
 :root {
   --pd-bg: #f1f5f9;
   --pd-surface: #ffffff;
@@ -43,7 +38,7 @@
   --pd-transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Base ─────────────────────────────────────────────────────────── */
+
 .pd {
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--pd-text);
@@ -65,7 +60,7 @@
   }
 }
 
-/* ── PAGE HEADER ──────────────────────────────────────────────────── */
+/* Header */
 .pd-header {
   display: flex;
   justify-content: space-between;
@@ -864,17 +859,17 @@
 
 .pd-card__progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #818cf8);
+  background: linear-gradient(90deg, #22c55e, #4ade80);
   border-radius: 9999px;
   transition: width .6s cubic-bezier(.4, 0, .2, 1);
 }
 
 .pd-card__progress-fill--hot {
-  background: linear-gradient(90deg, #ea580c, #fb923c);
+  background: linear-gradient(90deg, #22c55e, #4ade80);
 }
 
 .pd-card__progress-fill--full {
-  background: linear-gradient(90deg, #dc2626, #ef4444);
+  background: linear-gradient(90deg, #22c55e, #4ade80);
 }
 
 .pd-card__progress-lbl {
@@ -1410,4 +1405,66 @@
   .pd-stat__num {
     font-size: 18px;
   }
+}
+
+/* Custom Eye-Catching Centered Purchase Button */
+.pd-purchase-btn-centered {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 90%;
+  margin: 16px auto 4px;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #4f46e5);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  /* box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  border: none;
+  cursor: pointer;
+}
+
+.pd-purchase-btn-centered:hover {
+  transform: translateY(-2px) scale(1.02);
+  /* box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6); */
+  /* background: linear-gradient(135deg, #4338ca, #d946ef); */
+}
+
+.pd-purchase-btn-centered:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.pd-purchase-btn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.pd-search__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pd-search__clear img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pd-empty__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pd-add img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }

@@ -1,11 +1,25 @@
 import React from 'react'
 // import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Outlet, Link, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 
 export default function PublisherLayout() {
   const { user, token, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Untuk menampilkan nama page di navbar
+  const getHeaderTitle = () => {
+    const path = location.pathname
+    if (path.startsWith('/publisher/dashboard')) return 'Publisher Dashboard'
+    if (path.startsWith('/publisher/events/create')) return 'Tambah Event Baru'
+    if (path.startsWith('/publisher/events/update')) return 'Ubah Event'
+    if (path.startsWith('/publisher/orders')) return 'Daftar Pesanan'
+    if (path.startsWith('/publisher/profile')) return 'Profil Publisher'
+    if (path.startsWith('/publisher/coba')) return 'Coba'
+    if (path.startsWith('/publisher/cobalagi')) return 'Coba Lagi'
+    return 'Publisher Dashboard'
+  }
 
   React.useEffect(() => {
     if (!user || !token) {
@@ -77,8 +91,13 @@ export default function PublisherLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800">Publisher Dashboard</h2>
-          {/* <Link to="/" className="text-sm text-indigo-600 hover:text-indigo-500">View Public Site &rarr;</Link> */}
+          <h2 className="text-xl font-semibold text-gray-800">{getHeaderTitle()}</h2>                    
+          <Link to="/publisher/events/create" className="pd-btn pd-btn--primary pd-btn--lg">
+          <div className="pd-add">
+            <img src="/assets/add.png" alt="Add" />
+          </div>          
+            Buat Acara Baru
+          </Link>
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <Outlet />

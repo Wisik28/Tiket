@@ -7,6 +7,18 @@ export default function UserLayout() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Untuk menampilkan nama page di navbar
+  const getHeaderTitle = () => {
+    const path = location.pathname
+    if (path.startsWith('/user/dashboard')) return 'Dashboard Pembeli'
+    if (path.startsWith('/user/riwayatPembelian')) return 'Riwayat Pembelian'
+    if (path.startsWith('/user/profileUser')) return 'Profil Pengguna'
+    if (path.startsWith('/user/pembelian')) return 'Form Registrasi Acara'
+    if (path.startsWith('/user/detailRiwayat')) return 'Detail Transaksi & E-Tiket'
+    if (path.startsWith('/user/pembayaran')) return 'Pembayaran Tiket'
+    return 'Dashboard Pembeli'
+  }
+
   React.useEffect(() => {
     if (!user || !token) {
       navigate('/login', { replace: true })
@@ -39,8 +51,7 @@ export default function UserLayout() {
               to="/user/dashboard"
               className={({ isActive }) => {
                 const isDashboardActive = isActive || 
-                location.pathname.startsWith('/user/pembelian') ||
-                location.pathname.startsWith('/user/pembayaran')
+                location.pathname.startsWith('/user/pembelian')                
                 return `block px-4 py-2.5 rounded-lg text-sm font-medium ${isDashboardActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
               }                
             } >Dashboard</NavLink>
@@ -48,7 +59,9 @@ export default function UserLayout() {
             <NavLink
               to="/user/riwayatPembelian"
               className={({ isActive }) => {
-                const isRiwayatActive = isActive || location.pathname.startsWith('/user/detailRiwayat/')
+                const isRiwayatActive = isActive || 
+                location.pathname.startsWith('/user/detailRiwayat/') ||
+                location.pathname.startsWith('/user/pembayaran')
                 return `block px-4 py-2.5 rounded-lg text-sm font-medium ${isRiwayatActive ? 'bg-white text-indigo-900 shadow-sm' : 'hover:bg-indigo-800 text-white'}`
               }}
             > Riwayat Pembelian </NavLink>
@@ -77,7 +90,7 @@ export default function UserLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800">Dashboard Pembeli</h2>
+          <h2 className="text-xl font-semibold text-gray-800">{getHeaderTitle()}</h2>
           {/* <Link to="/" className="text-sm text-indigo-600 hover:text-indigo-500">View Public Site &rarr;</Link> */}
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
