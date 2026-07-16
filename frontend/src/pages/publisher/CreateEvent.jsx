@@ -125,7 +125,7 @@ export default function CreateEvent() {
         formData.append('description', data.description)
         formData.append('price', data.price)
         formData.append('quota', data.quota)
-        
+
         if (data.imageFile) {
           formData.append('image', data.imageFile)
         } else {
@@ -199,7 +199,7 @@ export default function CreateEvent() {
     const today = new Date()
     const year = today.getFullYear()
     const month = String(today.getMonth() + 1).padStart(2, '0')
-    const day = String(today.getDate()).padStart(2, '0')      
+    const day = String(today.getDate()).padStart(2, '0')
     const hours = String(today.getHours()).padStart(2, '0')
     const minutes = String(today.getMinutes()).padStart(2, '0')
     return `${year}-${month}-${day}T${hours}:${minutes}`
@@ -360,21 +360,21 @@ export default function CreateEvent() {
             </div>
           </div>
         </section>
-      
-        {/* Section: Gambar */}  
+
+        {/* Section: Gambar */}
         <section className="pd-form-section">
           <h3 className="pd-form-section__title">
             <span className="pd-form-section__num">3</span>
             Gambar Banner <span className="pd-form-section__opt">(opsional)</span>
           </h3>
-          <div className="pd-form-grid">            
+          <div className="pd-form-grid">
             <div className="pd-field pd-field--full">
-              <label className="pd-field__label">Upload Dokumen</label>              
+              <label className="pd-field__label">Upload Dokumen</label>
               {/* Area kotak upload tiruan drag & drop */}
-              <div 
+              <div
                 onClick={() => document.getElementById('f-image-upload').click()}
                 style={{
-                  border: '2px dashed #6366f1', 
+                  border: '2px dashed #6366f1',
                   borderRadius: '16px',
                   padding: '40px 24px',
                   textAlign: 'center',
@@ -392,30 +392,30 @@ export default function CreateEvent() {
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
-                
+
                 <h4 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '600', color: '#1e293b' }}>
                   Upload Dokumen
                 </h4>
                 <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
-                  Format: JPG, JPEG, PNG 
+                  Format: JPG, JPEG, PNG
                 </p>
                 {/* <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
                   Drag & drop file di sini<br />atau
                 </p>                 */}
                 {/* Tombol palsu untuk visual */}
-                <span style={{ 
-                  display: 'inline-flex', 
+                <span style={{
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backgroundColor: '#3b82f6', 
+                  backgroundColor: '#3b82f6',
                   // backgroundImage: 'linear-gradient(to right, #6366f1, #06b6d)',
-                  color: 'white', 
-                  padding: '10px 20px', 
-                  borderRadius: '8px', 
+                  color: 'white',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
                   fontSize: '14px',
                   fontWeight: '500'
                 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
                   Pilih File dari Komputer
                 </span>
                 {/* Input file asli yang disembunyikan */}

@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { Link } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
 import { toast } from 'react-hot-toast'
+import useDebounce from '../../hooks/useDebounce'
 import './Dashboard.css'
 
 // ===== Icons =====
@@ -134,6 +135,7 @@ const saveMock = (data) => localStorage.setItem('pub_events', JSON.stringify(dat
 export default function UserDashboard() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
   const [filterCat, setFilterCat] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -204,11 +206,11 @@ export default function UserDashboard() {
 
   // Filtered
   const filtered = useMemo(() => events.filter(e => {
-    const q = search.toLowerCase()
+    const q = debouncedSearch.toLowerCase()
     const matchQ = !q || e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
     const matchC = filterCat === 'All' || e.category === filterCat
     return matchQ && matchC
-  }), [events, search, filterCat])
+  }), [events, debouncedSearch, filterCat])
 
 
 
