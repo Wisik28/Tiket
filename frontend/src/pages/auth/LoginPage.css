@@ -40,7 +40,8 @@
   display: flex;
   justify-content: center;
   width: 100%;
-  max-width: 460px; /* Centered single column */
+  max-width: 460px;
+  /* Centered single column */
   border-radius: 20px;
   overflow: hidden;
   background: #ffffff;
@@ -317,7 +318,9 @@
 }
 
 @keyframes loginSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Bottom Links --- */
