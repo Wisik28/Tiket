@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance'
 
-export const ticketApi = {
+export const ticketApi = {  
   createOrder: async (orderData) => {
     const response = await axiosInstance.post('/orders', orderData)
     return response.data
@@ -19,6 +19,12 @@ export const ticketApi = {
   },
   purchaseTicket: async (ticketData) => {
     const response = await axiosInstance.post('/user/tickets', ticketData)
+    return response.data
+  },
+
+  // Dibutuhkan oleh page DaftarPesanan.jsx untuk menampilkan hasil fetch semua tiket yang dibeli user
+  getPublisherTickets: async (page = 1, search = '', filter = '') => {
+    const response = await axiosInstance.get(`/publisher/orders?page=${page}&search=${encodeURIComponent(search)}&filter=${filter}`)
     return response.data
   },
 }

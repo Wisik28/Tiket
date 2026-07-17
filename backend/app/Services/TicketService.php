@@ -70,6 +70,18 @@ class TicketService
             unset($data['publisher']);
         }
 
+        // Format nested buyer detail jika ada (dari lookup)
+        if (isset($data['buyer']) && (is_array($data['buyer']) || is_object($data['buyer']))) {
+            $buyerData = (array) $data['buyer'];
+            if (isset($buyerData['_id'])) {
+                $buyerData['id'] = (string) $buyerData['_id'];
+                unset($buyerData['_id']);
+            }
+            unset($buyerData['password']);
+            unset($buyerData['role']);
+            $data['buyer'] = $buyerData;
+        }
+
         return $data;
     }
 
@@ -250,5 +262,112 @@ class TicketService
         }
 
         return Ticket::updateStatusByOrderId($orderId, $status);
+    }
+
+    /**
+     * Mengambil daftar pesanan dari event milik publisher dengan filter & search
+     */
+    public function getPublisherTickets(string $publisherId, int $page = 1, int $limit = 15, ?string $search = null, ?string $filter = null): array
+    {
+        $collection = Ticket::getCollection();
+        $skip = ($page - 1) * $limit;
+
+        $pipeline = [
+            [
+                '$lookup' => [
+                    'from' => 'events',
+                    'localField' => 'event_id',
+                    'foreignField' => '_id',
+                    'as' => 'event'
+                ]
+            ],
+            [
+                '$unwind' => '$event'
+            ],
+            [
+                '$lookup' => [
+                    'from' => 'users',
+                    'localField' => 'user_id',
+                    'foreignField' => '_id',
+                    'as' => 'buyer'
+                ]
+            ],
+            [
+                '$unwind' => [
+                    'path' => '$buyer',
+                    'preserveNullAndEmptyArrays' => true
+                ]
+            ]
+        ];
+
+        // Match stage
+        $matchStage = [
+            'event.publisher_id' => new \MongoDB\BSON\ObjectId($publisherId)
+        ];
+
+        // Apply time filter (hari | minggu | bulan | tahun)
+        if ($filter) {
+            $startDateTime = null;
+            if ($filter === 'hari') {
+                $startDateTime = new \DateTime('today');
+            } elseif ($filter === 'minggu') {
+                $startDateTime = (new \DateTime())->modify('-7 days');
+            } elseif ($filter === 'bulan') {
+                $startDateTime = new \DateTime('first day of this month 00:00:00');
+            } elseif ($filter === 'tahun') {
+                $startDateTime = new \DateTime('first day of January 00:00:00');
+            }
+
+            if ($startDateTime) {
+                $matchStage['createdAt'] = ['$gte' => new \MongoDB\BSON\UTCDateTime($startDateTime->getTimestamp() * 1000)];
+            }
+        }
+
+        // Apply search filter (event title or buyer name)
+        if ($search) {
+            $matchStage['$or'] = [
+                ['event.title' => ['$regex' => $search, '$options' => 'i']],
+                ['buyer.name' => ['$regex' => $search, '$options' => 'i']]
+            ];
+        }
+
+        $pipeline[] = ['$match' => $matchStage];
+
+        // Facet for pagination
+        $pipeline[] = [
+            '$facet' => [
+                'metadata' => [
+                    ['$count' => 'total']
+                ],
+                'data' => [
+                    ['$sort' => ['createdAt' => -1]],
+                    ['$skip' => $skip],
+                    ['$limit' => $limit]
+                ]
+            ]
+        ];
+
+        $result = $collection->aggregate($pipeline)->toArray();
+        $total = 0;
+        $tickets = [];
+
+        if (!empty($result)) {
+            $total = $result[0]['metadata'][0]['total'] ?? 0;
+            $tickets = $result[0]['data'] ?? [];
+        }
+
+        $ticketsArray = is_object($tickets) && method_exists($tickets, 'getArrayCopy')
+            ? $tickets->getArrayCopy()
+            : (array)$tickets;
+
+        return [
+            'tickets' => array_map([$this, 'formatTicket'], $ticketsArray),
+            'pagination' => [
+                'total' => $total,
+                'current_page' => $page,
+                'limit' => $limit,
+                'has_more' => ($skip + count($ticketsArray)) < $total
+            ]
+        ];
     }
 }

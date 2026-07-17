@@ -352,8 +352,8 @@ export default function UserDashboard() {
                       <span className="pd-card__kpiuser-val pd-card__kpiuser-val--price">{formatRupiah(event.price)}</span>
                     </div>
                     <div className="pd-card__kpiuser">
-                      <span className="pd-card__kpiuser-lbl">Kapasitas</span>
-                      <span className="pd-card__kpiuser-val">{Number(event.capacity || event.quota).toLocaleString('id-ID')}</span>
+                      <span className="pd-card__kpiuser-lbl">Tersedia</span>
+                      <span className="pd-card__kpiuser-val">{Number(event.quota).toLocaleString('id-ID')}</span>
                     </div>
                   </div>
                   {/* Centered Purchase Button */}
