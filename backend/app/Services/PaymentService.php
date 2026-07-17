@@ -103,6 +103,35 @@ class PaymentService
     }
 
     /**
+     * Mendapatkan status transaksi dari Midtrans API.
+     */
+    public function getTransactionStatus(string $orderId): array
+    {
+        $url = $this->baseUrl . '/' . $orderId . '/status';
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPGET        => true,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Basic ' . base64_encode($this->serverKey . ':'),
+            ],
+        ]);
+
+        $result   = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($result === false) {
+            return [];
+        }
+
+        return json_decode($result, true) ?? [];
+    }
+
+    /**
      * Mendapatkan Client Key (dipakai di frontend).
      */
     public function getClientKey(): string

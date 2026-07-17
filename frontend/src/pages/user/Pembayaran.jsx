@@ -11,24 +11,34 @@ export default function Pembayaran() {
   const navigate = useNavigate()
   
   const { data: ticketsData, isLoading } = useQuery({
-    queryKey: ['my-tickets'],
+    queryKey: ['my-tickets-list'], // Untuk mengambil data tiket dan supaya terisolasi dari cache infinity
     queryFn: async () => {
       const res = await ticketApi.getMyTickets()
       if (res?.success && Array.isArray(res?.data)) {
         return res.data
       }
       return []
+    },    
+    refetchInterval: (query) => { // Selalu melakukan refetch setiap 3 detik selama status masih 'pending' setelah status berubah maka berhenti refetch
+      const data = query.state.data
+      const currentTicket = Array.isArray(data) && data.find(t => t.id === ticketId)
+      return currentTicket && currentTicket.status === 'pending' ? 3000 : false
     }
   })
 
-  // Find ticket from location state or fallback to query data
-  const ticket = location.state?.ticket || (Array.isArray(ticketsData) && ticketsData.find(t => t.id === ticketId))
+  // Memprioritaskan data terbaru dari API, kemudian fallback ke location state
+  const ticket = (Array.isArray(ticketsData) && ticketsData.find(t => t.id === ticketId)) || location.state?.ticket
   const event = ticket?.event
 
   const [timeLeft, setTimeLeft] = useState('')
 
   useEffect(() => {
     if (!ticket) return
+
+    if (ticket.status !== 'pending') {
+      setTimeLeft('')
+      return
+    }
 
     const expiryTime = ticket.payment_expiry 
       ? new Date(ticket.payment_expiry).getTime()
@@ -100,25 +110,55 @@ export default function Pembayaran() {
 
   return (
     <div className="max-w-md mx-auto my-8 px-4">
-      {/* Expiry Alert Card */}
-      <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-red-100 rounded-xl text-red-600 animate-pulse">
+      {/* Card untuk alert: batas waktu, gagal, dan berhasil */}
+      {ticket.status === 'pending' && (
+        <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-red-100 rounded-xl text-red-600 animate-pulse">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs text-red-500 font-medium">Batas Waktu Pembayaran</p>
+              <p className="text-sm font-bold text-red-700">Bayar dalam 10 menit</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className={`px-3 py-1.5 rounded-xl font-mono text-base font-bold bg-white text-red-600 border border-red-200/50 shadow-sm ${timeLeft === 'EXPIRED' ? 'text-gray-400 border-gray-200' : ''}`}>
+              {timeLeft}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {ticket.status === 'paid' && (
+        <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-sm animate-fade-in">
+          <div className="p-2.5 bg-green-100 rounded-xl text-green-600">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div>
-            <p className="text-xs text-red-500 font-medium">Batas Waktu Pembayaran</p>
-            <p className="text-sm font-bold text-red-700">Bayar dalam 10 menit</p>
+            <p className="text-xs text-green-600 font-bold uppercase tracking-wider">Status Pembayaran</p>
+            <p className="text-sm font-bold text-green-700">Pembayaran Berhasil! E-Tiket Anda telah terbit.</p>
           </div>
         </div>
-        <div className="text-right">
-          <span className={`px-3 py-1.5 rounded-xl font-mono text-base font-bold bg-white text-red-600 border border-red-200/50 shadow-sm ${timeLeft === 'EXPIRED' ? 'text-gray-400 border-gray-200' : ''}`}>
-            {timeLeft}
-          </span>
+      )}
+
+      {ticket.status === 'failed' && (
+        <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-sm animate-fade-in">
+          <div className="p-2.5 bg-red-100 rounded-xl text-red-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-xs text-red-600 font-bold uppercase tracking-wider">Status Pembayaran</p>
+            <p className="text-sm font-bold text-red-700">Pembayaran Sudah Kadaluwarsa.</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Payment Details Card */}
       <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden mb-6">
@@ -159,9 +199,7 @@ export default function Pembayaran() {
                   className="p-2.5 text-black hover:bg-gray-100 text-indigo-600 border border-gray-200 shadow-sm rounded-xl transition duration-200 flex items-center justify-center cursor-pointer active:scale-95"
                   title="Salin No VA"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3h3.375m1.5 1.5H18a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H9.75a3 3 0 0 1-3-3V12m3-3H6.75A2.25 2.25 0 0 1 4.5 6.75V4.875m3 3h3.375M16.5 4.5h3.375m-6.75 3h6.75" />
-                  </svg>
+                  <img src="/assets/copy.png" alt="Copy" className="w-5 h-5 object-contain" />
                 </button>
               )}
             </div>

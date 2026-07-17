@@ -16,13 +16,14 @@ export default function RiwayatPembelian() {
     isFetchingNextPage
   } = useInfiniteQuery({
     queryKey: ['my-tickets'],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async ({ pageParam }) => {
       const res = await ticketApi.getMyTickets(pageParam)
       if (res?.success && Array.isArray(res?.data)) {
         return res
       }
       throw new Error(res?.message || 'Gagal mengambil riwayat pembelian')
     },
+    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage?.pagination?.has_more) {
         return (lastPage.pagination.current_page || 1) + 1
@@ -126,7 +127,8 @@ export default function RiwayatPembelian() {
             {purchases.map((purchase) => (
               <div
                 key={purchase.id}
-                // Jika diklik maka akan direct ke page Pembayaran selama payment belum berhasil dilakukan
+                // Jika diklik maka akan direct ke page Pembayaran selama status masih 'pending'
+                // dan jika status sudah 'paid' atau 'failed' maka akan direct ke page detailRiwayat
                 onClick={() => {
                   if (purchase.status === 'pending') {
                     navigate(`/user/pembayaran/${purchase.id}`, { state: { ticket: purchase } })
@@ -150,12 +152,13 @@ export default function RiwayatPembelian() {
                     <h3 className="text-base font-bold text-gray-900 leading-snug">{purchase.event?.title || 'Event tidak ditemukan'}</h3>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1.5">
                       <span>Tanggal Acara: <strong>{formatDate(purchase.event?.date)} · {formatTime(purchase.event?.date)}</strong></span>
-                      <span className="hidden md:inline text-gray-300">•</span>
-                      <span>ID Transaksi: <strong className="font-mono text-xs">{purchase.id}</strong></span>
+                      {/* <span className="hidden md:inline text-gray-300">•</span> */}
+                      {/* <span>ID Transaksi: <strong className="font-mono text-xs">{purchase.id}</strong></span> */}
                     </div>
                   </div>
                 </div>
 
+                {/* Menampilkan status pada card */}
                 <div className="flex md:flex-col justify-between items-end gap-2 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100">
                   <div className="text-right">
                     <p className="text-xs text-gray-400">Total Pembayaran ({purchase.quantity} Tiket)</p>

@@ -188,7 +188,7 @@ const saveMock = (data) => localStorage.setItem('pub_events', JSON.stringify(dat
 export default function PublisherDashboard() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 500)
+  const debouncedSearch = useDebounce(search, 500) // Setting timer debounce
   const [filterCat, setFilterCat] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
 

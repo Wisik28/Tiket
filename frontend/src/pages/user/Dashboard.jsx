@@ -135,7 +135,7 @@ const saveMock = (data) => localStorage.setItem('pub_events', JSON.stringify(dat
 export default function UserDashboard() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 500)
+  const debouncedSearch = useDebounce(search, 500) // setting timer debounce
   const [filterCat, setFilterCat] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -149,7 +149,7 @@ export default function UserDashboard() {
     isFetchingNextPage
   } = useInfiniteQuery({
     queryKey: ['user-events'],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async ({ pageParam }) => {
       try {
         const res = await eventApi.getUserEvents(pageParam)
         if (res?.success && Array.isArray(res?.data)) return res
@@ -166,6 +166,7 @@ export default function UserDashboard() {
         throw err
       }
     },
+    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage?.pagination?.has_more) {
         return (lastPage.pagination.current_page || 1) + 1
