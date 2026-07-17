@@ -16,8 +16,10 @@ header('Content-Type: application/json');
 
 // Handle CORS first
 \App\Middleware\CorsMiddleware::handle(function() {
-    // Fetch method and URI
-    $httpMethod = $_SERVER['REQUEST_METHOD'];
+    // Apply Rate Limiting globally (60 requests per 1 minute)
+    \App\Middleware\RateLimitMiddleware::handle(function() {
+        // Fetch method and URI
+        $httpMethod = $_SERVER['REQUEST_METHOD'];
     $uri = $_SERVER['REQUEST_URI'];
 
     // Strip query string (?foo=bar) and decode URI
@@ -74,4 +76,5 @@ header('Content-Type: application/json');
             $pipeline();
             break;
     }
+    });
 });

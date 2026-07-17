@@ -7,7 +7,7 @@ export default function useDebounce(value, delay) {
     // Memasang timer (menahan perubahan)
     const handler = setTimeout(() => {
       setDebouncedValue(value);
-    }, delay);
+}, delay);
 
     // Membersihkan timer jika value berubah lagi (user masih ngetik)
     return () => {
