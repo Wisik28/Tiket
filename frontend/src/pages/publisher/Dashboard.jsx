@@ -413,8 +413,9 @@ export default function PublisherDashboard() {
                       <span className="pd-card__kpi-val pd-card__kpi-val--price">{formatRupiah(event.price)}</span>
                     </div>
                     <div className="pd-card__kpi">
-                      <span className="pd-card__kpi-lbl">Kapasitas</span>
-                      <span className="pd-card__kpi-val">{Number(event.capacity || event.quota).toLocaleString('id-ID')}</span>
+                      <span className="pd-card__kpi-lbl">Tersedia</span>
+                      {/* Variabel .quota menampilkan sisa tiket yang tersedia */}
+                      <span className="pd-card__kpi-val">{Number(event.quota).toLocaleString('id-ID')}</span>
                     </div>
                     <div className="pd-card__kpi">
                       <span className="pd-card__kpi-lbl">Terjual</span>
@@ -435,6 +436,7 @@ export default function PublisherDashboard() {
                       />
                     </div>
                     <div className="pd-card__progress-lbl">
+                      {/* Variabel cap menampilkan seluruh kapasitas tiket dari awal dibuat oleh publisher */}
                       {sold.toLocaleString('id-ID')} dari {Number(cap).toLocaleString('id-ID')} tiket
                     </div>
                   </div>

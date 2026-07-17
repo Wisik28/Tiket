@@ -55,4 +55,11 @@ return function (\FastRoute\RouteCollector $r) {
         'destroy',
         $middlewares
     ]);
+
+    // GET /api/publisher/pesanan — ambil semua pesanan milik user dari event publisher ini
+    $r->addRoute('GET', '/api/publisher/orders', [
+        'App\Controllers\TicketController',
+        'publisherIndex',
+        $middlewares
+    ]);
 };

@@ -92,8 +92,8 @@ export default function PublisherLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">{getHeaderTitle()}</h2>                    
-          {/* Condition jika sedang berada di page /events/create maka tidak muncul button tambah pada navbar */}
-          {!location.pathname.startsWith('/publisher/events/create') && (
+          {/* Condition jika sedang berada di page /events/create dan /events/update maka tidak muncul button tambah pada navbar */}
+          {!location.pathname.startsWith('/publisher/events/create') && !location.pathname.startsWith('/publisher/events/update') && (
             <Link to="/publisher/events/create" className="pd-btn pd-btn--primary pd-btn--lg">
               <div className="pd-add">
                 <img src="/assets/add.png" alt="Add" />
