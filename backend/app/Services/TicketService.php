@@ -99,6 +99,39 @@ class TicketService
         $tickets = Ticket::findAllByUser($userId, $skip, $limit);
         $total = Ticket::countByUser($userId);
 
+        // Proaktif cek status Midtrans untuk pending tickets (Sangat berguna untuk localhost)
+        $paymentService = new PaymentService();
+        $updatedAny = false;
+        foreach ($tickets as &$ticket) {
+            $ticketArray = (array)$ticket;
+            if (isset($ticketArray['status']) && $ticketArray['status'] === 'pending' && isset($ticketArray['payment_id'])) {
+                try {
+                    $midtransStatus = $paymentService->getTransactionStatus($ticketArray['payment_id']);
+                    $txStatus = $midtransStatus['transaction_status'] ?? '';
+                    $fraudStatus = $midtransStatus['fraud_status'] ?? '';
+
+                    if (in_array($txStatus, ['settlement', 'capture'])) {
+                        $status = ($fraudStatus === '' || $fraudStatus === 'accept') ? 'paid' : 'failed';
+                        Ticket::updateStatusByOrderId($ticketArray['payment_id'], $status);
+                        $ticket['status'] = $status;
+                        $updatedAny = true;
+                    } elseif (in_array($txStatus, ['deny', 'cancel', 'expire', 'failure'])) {
+                        Ticket::updateStatusByOrderId($ticketArray['payment_id'], 'failed');
+                        $ticket['status'] = 'failed';
+                        $updatedAny = true;
+                    }
+                } catch (\Exception $e) {
+                    // Abaikan jika error (misal belum di-charge ke midtrans atau masalah jaringan)
+                }
+            }
+        }
+        unset($ticket);
+
+        if ($updatedAny) {
+            // Ambil ulang data tiket yang terupdate
+            $tickets = Ticket::findAllByUser($userId, $skip, $limit);
+        }
+
         return [
             'tickets' => array_map([$this, 'formatTicket'], $tickets),
             'pagination' => [

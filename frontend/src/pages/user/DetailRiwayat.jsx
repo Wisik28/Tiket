@@ -170,12 +170,13 @@ export default function DetailRiwayat() {
                   <p className="font-mono font-bold text-gray-800 mt-0.5">{purchase.id}</p>
                 </div>
               )}
-              <div>
+              {/* Menampilkan status pembayaran berdasarkan purchase.status */}
+              <div>                 
                 <p className="text-gray-400 font-medium">Status Pembayaran</p>
                 {purchase.status === 'paid' ? (
                   <span className="items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100 mt-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    Lunas
+                    Berhasil
                   </span>
                 ) : purchase.status === 'failed' ? (
                   <span className="items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100 mt-1">
