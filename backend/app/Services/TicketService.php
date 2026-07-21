@@ -57,6 +57,13 @@ class TicketService
                 }
             }
 
+            // Tambahkan flag is_expired agar frontend lebih mudah
+            if (isset($eventData['date'])) {
+                $eventData['is_expired'] = $eventData['date'] < date('Y-m-d');
+            } else {
+                $eventData['is_expired'] = false;
+            }
+
             // Map nama penyelenggara/publisher ke event
             if (isset($data['publisher']) && (is_array($data['publisher']) || is_object($data['publisher']))) {
                 $publisherData = (array) $data['publisher'];
@@ -88,7 +95,7 @@ class TicketService
     /**
      * Mengambil riwayat pembelian tiket user dengan pagination
      */
-    public function getUserTickets(string $userId, int $page = 1, int $limit = 10): array
+    public function getUserTickets(string $userId, int $page = 1, int $limit = 10, bool $isSearch = false): array
     {
         // Jika user tidak membayar lebih dari 10 menit maka status akan berubah menjadi failed (gagal)
         $collection = Ticket::getCollection();
@@ -108,8 +115,8 @@ class TicketService
         );
 
         $skip = ($page - 1) * $limit;
-        $tickets = Ticket::findAllByUser($userId, $skip, $limit);
-        $total = Ticket::countByUser($userId);
+        $tickets = Ticket::findAllByUser($userId, $isSearch, $skip, $limit);
+        $total = Ticket::countByUser($userId, $isSearch);
 
         // Proaktif cek status Midtrans untuk pending tickets (Sangat berguna untuk localhost)
         $paymentService = new PaymentService();
@@ -141,7 +148,7 @@ class TicketService
 
         if ($updatedAny) {
             // Ambil ulang data tiket yang terupdate
-            $tickets = Ticket::findAllByUser($userId, $skip, $limit);
+            $tickets = Ticket::findAllByUser($userId, $isSearch, $skip, $limit);
         }
 
         return [
