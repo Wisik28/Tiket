@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
 import { toast } from 'react-hot-toast'
 import useDebounce from '../../hooks/useDebounce'
-import './Dashboard.css'
+import '../../style/DashboardPublisher.css'
 
 // ===== Icons =====
 const PlusIcon = () => (

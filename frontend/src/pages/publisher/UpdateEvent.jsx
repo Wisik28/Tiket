@@ -4,7 +4,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
 import axiosInstance from '../../api/axiosInstance'
 import { toast } from 'react-hot-toast'
-import './Dashboard.css'
+import '../../style/DashboardPublisher.css'
 
 // Inline Icons
 const EditIcon = () => (

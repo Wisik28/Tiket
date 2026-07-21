@@ -1,12 +1,5 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Publisher Dashboard – Dashboard.css
-   Modern Event Ticketing Platform Aesthetic
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* ── Google Font ──────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ── Design Tokens ────────────────────────────────────────────────── */
 :root {
   --pd-bg:            #f1f5f9;
   --pd-surface:       #ffffff;

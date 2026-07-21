@@ -1,15 +1,23 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import './RegisterPage.css'
+import '../../style/RegisterPage.css'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
 import { authApi } from '../../api/authApi'
 
+// Vaalidasi input field menggunakan zod
 const registerSchema = z
   .object({
     name: z.string().min(2, 'Nama minimal 2 karakter'),
+    nik: z.string().length(16, 'NIK harus 16 karakter'),
+    tglLahir: z
+      .string()
+      .optional()
+      .refine((val) => !val || new Date(val) <= new Date(), {
+        message: 'Tanggal lahir harus tanggal di masa lalu',
+      }),
     address: z.string().min(10, 'Alamat harus lengkap'),
     email: z.string().email('Format email tidak valid'),
     mobile: z.string().min(12, 'Nomor handphone tidak valid'),
@@ -17,6 +25,18 @@ const registerSchema = z
     role: z.enum(['user', 'publisher']),
     company_name: z.string().optional(),
   })
+  .refine(
+    (data) => {
+      if (data.role === 'user') {
+        return !!data.tglLahir && data.tglLahir.trim().length > 0
+      }
+      return true
+    },
+    {
+      message: 'Tanggal lahir wajib diisi',
+      path: ['tglLahir'],
+    }
+  )
   .refine(
     (data) => {
       if (data.role === 'publisher') {
@@ -61,11 +81,12 @@ export default function RegisterPage() {
     try {    
       const payload = {
         name: formData.name,
+        nik: formData.nik,
+        tglLahir: formData.tglLahir,
         email: formData.email,
         password: formData.password,
         role: formData.role,
-        address: formData.address,
-        // phone: formData.mobile,
+        address: formData.address,        
         mobile: formData.mobile,
         ...(formData.role === 'publisher' ? { company_name: formData.company_name } : {}),
       }
@@ -195,6 +216,32 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Field NIK */}
+              <div className="login-field">
+                <label htmlFor="reg-nik" className="login-field__label">
+                  NIK
+                </label>
+                <div className={`login-field__input-wrapper ${errors.nik ? 'login-field__input-wrapper--error' : ''}`}>
+                  <div className="login-field__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <input
+                    id="reg-nik"
+                    type="number"
+                    maxLength={16}
+                    minLength={16}
+                    placeholder="Masukkan NIK"
+                    autoComplete="nik"
+                    className="login-field__input"
+                    {...register('nik')}
+                  />
+                </div>
+                {errors.nik && <p className="login-field__error">{errors.nik.message}</p>}
+              </div>
+
               {/* Name field */}
               <div className="login-field">
                 <label htmlFor="reg-name" className="login-field__label">
@@ -241,6 +288,35 @@ export default function RegisterPage() {
                 </div>
                 {errors.address && <p className="login-field__error">{errors.address.message}</p>}
               </div>
+
+              {/* User saja: Tanggal Lahir */}
+              {selectedRole === 'user' && (
+                <div className="login-field animate-fade-in">
+                  <label htmlFor="reg-tglLahir" className="login-field__label">
+                    Tanggal Lahir
+                  </label>                  
+                  <div className={`login-field__input-wrapper ${errors.tglLahir ? 'login-field__input-wrapper--error' : ''}`}>
+                    <div className="login-field__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                    </div>
+                    <input                        
+                      id="reg-tglLahir"
+                      type="date"
+                      max={new Date().toISOString().split('T')[0]}
+                      className="login-field__input"
+                      {...register('tglLahir')}
+                    />
+                  </div>
+                  {errors.tglLahir && (
+                    <p className="login-field__error">{errors.tglLahir.message}</p>
+                  )}
+                </div>
+              )}
 
               {/* Company Name field (Conditional) */}
               {selectedRole === 'publisher' && (

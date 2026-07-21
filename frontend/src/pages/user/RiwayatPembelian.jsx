@@ -138,13 +138,32 @@ export default function RiwayatPembelian() {
                 }}
                 className="p-6 border-t border-gray-100 first:border-t-0 hover:bg-gray-50 hover:shadow-sm cursor-pointer transition-all duration-200 flex flex-col md:flex-row justify-between gap-4 md:items-center border-l-4 border-l-transparent hover:border-l-indigo-600"
               >
-                <div className="flex items-start gap-4">
-                  {/* Category Indicator Icon */}
-                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl flex-shrink-0">
+                <div className="flex items-start gap-4">                
+                  {/* Gambar / Icon preview pada setiap daftar riwayat event yang pernah dibeli */}
+                  {purchase.event?.image_url || purchase.event?.image ? (
+                    <img
+                      src={purchase.event.image_url || purchase.event.image}
+                      alt={purchase.event?.title || 'Event'}
+                      className="w-16 h-16 object-cover rounded-xl border border-gray-100 flex-shrink-0 shadow-sm"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        if (e.currentTarget.nextElementSibling) {
+                          e.currentTarget.nextElementSibling.classList.remove('hidden')
+                          e.currentTarget.nextElementSibling.classList.add('flex')
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`p-3.5 bg-indigo-50 text-indigo-600 rounded-xl flex-shrink-0 ${
+                      purchase.event?.image_url || purchase.event?.image ? 'hidden' : 'flex'
+                    } items-center justify-center`}
+                  >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                     </svg>
                   </div>
+
                   <div>
                     <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 mb-2">
                       {purchase.event?.category || 'Kategori'}
