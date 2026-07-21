@@ -72,21 +72,34 @@ class Ticket
     /**
      * Hitung total tiket milik user
      */
-    public static function countByUser(string $userId): int
+    public static function countByUser(string $userId, bool $isSearch = false): int
     {
         $collection = self::getCollection();
-        return $collection->countDocuments([
-            'user_id' => new \MongoDB\BSON\ObjectId($userId)
-        ]);
+        
+        if ($isSearch) {
+            return $collection->countDocuments(['user_id' => new \MongoDB\BSON\ObjectId($userId)]);
+        }
+
+        // Jika bukan pencarian, hitung hanya tiket yang acaranya masih aktif
+        $pipeline = [
+            ['$match' => ['user_id' => new \MongoDB\BSON\ObjectId($userId)]],
+            ['$lookup' => ['from' => 'events', 'localField' => 'event_id', 'foreignField' => '_id', 'as' => 'event']],
+            ['$unwind' => ['path' => '$event', 'preserveNullAndEmptyArrays' => true]],
+            ['$match' => ['event.date' => ['$gte' => date('Y-m-d')]]],
+            ['$count' => 'total']
+        ];
+        
+        $result = $collection->aggregate($pipeline)->toArray();
+        return $result[0]['total'] ?? 0;
     }
 
     /**
      * Ambil semua transaksi tiket milik user tertentu beserta detail event-nya dengan pagination
      */
-    public static function findAllByUser(string $userId, int $skip = 0, int $limit = 10): array
+    public static function findAllByUser(string $userId, bool $isSearch = false, int $skip = 0, int $limit = 10): array
     {
         $collection = self::getCollection();
-        $cursor = $collection->aggregate([
+        $pipeline = [
             [
                 '$match' => [
                     'user_id' => new \MongoDB\BSON\ObjectId($userId)
@@ -105,7 +118,19 @@ class Ticket
                     'path' => '$event',
                     'preserveNullAndEmptyArrays' => true
                 ]
-            ],
+            ]
+        ];
+
+        // Jika bukan pencarian (tampilan default), hanya tampilkan tiket dengan event yang masih aktif (hari ini atau masa depan)
+        if (!$isSearch) {
+            $pipeline[] = [
+                '$match' => [
+                    'event.date' => ['$gte' => date('Y-m-d')]
+                ]
+            ];
+        }
+
+        $pipeline = array_merge($pipeline, [
             [
                 '$lookup' => [
                     'from' => 'users',
@@ -132,6 +157,8 @@ class Ticket
                 '$limit' => $limit
             ]
         ]);
+
+        $cursor = $collection->aggregate($pipeline);
         return $cursor->toArray();
     }
 
