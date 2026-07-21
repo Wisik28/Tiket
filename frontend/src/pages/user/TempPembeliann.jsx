@@ -6,7 +6,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ticketApi } from '../../api/ticketApi'
 import { toast } from 'react-hot-toast'
-import './Dashboard.css'
 
 // Default Banner Image if not provided
 const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&auto=format&fit=crop'

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
+import { z } from 'zod'
 import { toast } from 'react-hot-toast'
-import './Dashboard.css'
+import '../../style/DashboardPublisher.css'
 
 // Inline Icons
 const PlusIcon = () => (
@@ -166,15 +167,34 @@ export default function CreateEvent() {
 
   const setField = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
+  // Schema validasi pembuatan event menggunakan Zod
+  const createEventSchema = z.object({
+    title: z.string().min(3, 'Nama event wajib diisi (minimal 3 karakter).'),
+    category: z.string().min(1, 'Kategori wajib dipilih.'),
+    date: z.string().min(1, 'Tanggal & waktu wajib diisi.'),
+    location: z.string().min(3, 'Lokasi / venue wajib diisi.'),
+    price: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 0, { message: 'Harga tiket tidak valid.' }),
+    capacity: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 1, { message: 'Kapasitas minimal 1.' }),
+  })
+
+  // Validasi form dengan Zod safeParse
+  // Validasi form ini memanggil schema validasi di atas, jika ada error maka akan mengembalikan nilai error
+  // Jika schema tidak dipanggil maka form tidak akan divalidasi oleh program
   const validate = () => {
-    const e = {}
-    if (!form.title.trim()) e.title = 'Nama event wajib diisi.'
-    if (!form.date) e.date = 'Tanggal & waktu wajib diisi.'
-    if (!form.location.trim()) e.location = 'Lokasi wajib diisi.'
-    if (!form.price || Number(form.price) < 0) e.price = 'Harga tiket tidak valid.'
-    if (!form.capacity || Number(form.capacity) < 1) e.capacity = 'Kapasitas minimal 1.'
-    setFormErrors(e)
-    return Object.keys(e).length === 0
+    const result = createEventSchema.safeParse(form)
+    if (!result.success) {
+      const e = {}
+      result.error.issues.forEach(issue => {
+        if (issue.path[0]) {
+          e[issue.path[0]] = issue.message
+        }
+      })
+      setFormErrors(e)
+      toast.error('Harap lengkapi formulir event dengan benar!')
+      return false
+    }
+    setFormErrors({})
+    return true
   }
 
   const handleSubmit = (ev) => {

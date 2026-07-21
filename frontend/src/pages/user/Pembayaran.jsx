@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { ticketApi } from '../../api/ticketApi'
 import { toast } from 'react-hot-toast'
-import './Dashboard.css'
+import '../../style/DashboardUser.css'
 
 export default function Pembayaran() {
   const { id: ticketId } = useParams()

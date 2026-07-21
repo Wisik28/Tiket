@@ -90,8 +90,7 @@ export default function UserLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-6 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800">{getHeaderTitle()}</h2>
-          {/* <Link to="/" className="text-sm text-indigo-600 hover:text-indigo-500">View Public Site &rarr;</Link> */}
+          <h2 className="text-xl font-semibold text-gray-800">{getHeaderTitle()}</h2>          
         </header>
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
           <Outlet />

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { QRCodeSVG } from 'qrcode.react'
 import useAuth from '../../hooks/useAuth'
-import './Dashboard.css'
+import '../../style/DashboardUser.css'
 
 export default function DetailRiwayat() {
   const location = useLocation()

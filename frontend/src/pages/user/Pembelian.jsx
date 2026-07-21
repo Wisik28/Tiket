@@ -1,14 +1,17 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { z } from 'zod'
 import { ticketApi } from '../../api/ticketApi'
 import { eventApi } from '../../api/eventApi'
 import useAuth from '../../hooks/useAuth'
 import { toast } from 'react-hot-toast'
-import './Dashboard.css'
+import '../../style/DashboardUser.css'
 
 const createEmptyHolder = () => ({
+  nik: '',
   name: '',
+  tglLahir: '',
   phone: '',
   email: '',
   address: '',
@@ -70,7 +73,9 @@ export default function TempPembelian() {
       setHolders(prev => {
         const updated = [...prev]
         updated[0] = {
+          nik: user.nik || '',
           name: user.name || '',
+          tglLahir: user.tglLahir || '',
           phone: user.mobile || '',
           email: user.email || '',
           address: user.address || '',
@@ -86,7 +91,9 @@ export default function TempPembelian() {
       setHolders(prev => {
         const updated = [...prev]
         updated[0] = {
+          nik: '',
           name: '',
+          tglLahir: '',
           phone: '',
           email: '',
           address: '',
@@ -148,25 +155,39 @@ export default function TempPembelian() {
     })
   }
 
-//   Validasi input dan menggunakan semacam regular expression untuk email
+// Schema validasi pengunjung menggunakan Zod
+const ticketHolderSchema = z.object({
+  nik: z.string().length(16, 'NIK harus 16 digit angka'),
+  name: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
+  phone: z.string().min(12, 'Nomor handphone harus 12 digit'),
+  email: z.string().email('Format email tidak valid'),
+  address: z.string().min(5, 'Alamat tinggal wajib diisi'),
+})
+
+// Validasi input pengunjung menggunakan Zod safeParse
+// Memanggil schema validasi pengunjung di atas
   const validate = () => {
+    let isValid = true
     const newErrors = holders.map(holder => {
-      const errors = {}
-      if (!holder.name.trim()) errors.name = 'Nama lengkap wajib diisi.'
-      if (!holder.phone.trim()) errors.phone = 'Nomor handphone wajib diisi.'
-      
-      if (!holder.email.trim()) {
-        errors.email = 'Alamat email wajib diisi.'
-      } else if (!/\S+@\S+\.\S+/.test(holder.email)) {
-        errors.email = 'Format email tidak valid.'
+      const result = ticketHolderSchema.safeParse(holder)
+      if (!result.success) {
+        isValid = false
+        const errors = {}
+        result.error.issues.forEach(issue => {
+          if (issue.path[0]) {
+            errors[issue.path[0]] = issue.message
+          }
+        })
+        return errors
       }
-      
-      if (!holder.address.trim()) errors.address = 'Alamat tinggal wajib diisi.'
-      return errors
+      return {}
     })
     
     setHolderErrors(newErrors)
-    return newErrors.every(errors => Object.keys(errors).length === 0)
+    if (!isValid) {
+      toast.error('Input tidak valid! Harap periksa kembali formulir pembelian.')
+    }
+    return isValid
   }
 
   // Handler button submit
@@ -291,6 +312,20 @@ export default function TempPembelian() {
             </div>
 
             <div className="pd-form-grid">
+              {/* NIK */}
+              <div className={`pd-field pd-field--full ${holderErrors[index]?.nik ? 'pd-field--error' : ''}`}>
+                <label className="pd-field__label" htmlFor={`f-nik-${index}`}>NIK <span className="pd-req">*</span></label>
+                <input
+                  id={`f-nik-${index}`}
+                  className="pd-field__input"
+                  type="text"
+                  placeholder="Contoh: 1234567890123456"
+                  value={holder.nik}
+                  onChange={e => handleFieldChange(index, 'nik', e.target.value)}
+                />
+                {holderErrors[index]?.nik && <p className="pd-field__err">{holderErrors[index].nik}</p>}
+              </div>
+              
               {/* Nama Lengkap */}
               <div className={`pd-field pd-field--full ${holderErrors[index]?.name ? 'pd-field--error' : ''}`}>
                 <label className="pd-field__label" htmlFor={`f-name-${index}`}>Nama Lengkap <span className="pd-req">*</span></label>
