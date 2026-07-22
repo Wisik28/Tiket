@@ -18,7 +18,7 @@ const createEmptyHolder = () => ({
 })
 
 // Function untuk pembelian
-export default function TempPembelian() {
+export default function Pembelian() {
   const { id: eventId } = useParams()
   const location = useLocation()
   const qc = useQueryClient()
@@ -68,7 +68,7 @@ export default function TempPembelian() {
 
   // Handler toggle button untuk input data user otomatis (sesuai dengan data registrasi)
   const handleToggleProfileData = (checked) => {
-    setUseProfileData(checked)
+    setUseProfileData(checked) // Semacam setter untuk mengambil data atribut user dan disimpan ke variabel useProfileData
     if (checked && user) {
       setHolders(prev => {
         const updated = [...prev]
@@ -156,11 +156,21 @@ export default function TempPembelian() {
   }
 
 // Schema validasi pengunjung menggunakan Zod
-const ticketHolderSchema = z.object({
+// Schema untuk input form orang pertama
+const primaryHolderSchema = z.object({
   nik: z.string().length(16, 'NIK harus 16 digit angka'),
   name: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
+  tglLahir: z.string().min(1, 'Tanggal lahir wajib diisi'),
   phone: z.string().min(12, 'Nomor handphone harus 12 digit'),
   email: z.string().email('Format email tidak valid'),
+  address: z.string().min(5, 'Alamat tinggal wajib diisi'),
+})
+
+// Schema validasi untuk input form orang kedua dan seterusnya
+const additionalHolderSchema = z.object({
+  nik: z.string().length(16, 'NIK harus 16 digit angka'),
+  name: z.string().min(2, 'Nama lengkap minimal 2 karakter'),
+  tglLahir: z.string().min(1, 'Tanggal lahir wajib diisi'),
   address: z.string().min(5, 'Alamat tinggal wajib diisi'),
 })
 
@@ -168,8 +178,9 @@ const ticketHolderSchema = z.object({
 // Memanggil schema validasi pengunjung di atas
   const validate = () => {
     let isValid = true
-    const newErrors = holders.map(holder => {
-      const result = ticketHolderSchema.safeParse(holder)
+    const newErrors = holders.map((holder, index) => {
+      const schema = index === 0 ? primaryHolderSchema : additionalHolderSchema
+      const result = schema.safeParse(holder)
       if (!result.success) {
         isValid = false
         const errors = {}
@@ -202,7 +213,7 @@ const ticketHolderSchema = z.object({
     purchaseMutation.mutate(payload)
   }
 
-  const isSaving = purchaseMutation.isPending
+  const isSaving = purchaseMutation.isPending 
 
   return (
     <div className="pd-create-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
@@ -211,7 +222,7 @@ const ticketHolderSchema = z.object({
         <p className="text-sm text-gray-500 mt-1">Lengkapi seluruh data di bawah ini.</p>
       </header>
 
-      {/* Event Summary Section */}
+      {/* Ringkasan detail event */}
       {event && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
           {/* Banner */}
@@ -231,7 +242,8 @@ const ticketHolderSchema = z.object({
           </div>
 
           {/* Event Details */}
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-100">
+          <div className="p-6 flex flex-col gap-4 border-b border-gray-100">
+            {/* tanggal dan waktu */}
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -244,6 +256,7 @@ const ticketHolderSchema = z.object({
               </div>
             </div>
 
+            {/* lokasi event */}
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -253,31 +266,44 @@ const ticketHolderSchema = z.object({
               </div>
               <div>
                 <p className="text-xxs text-gray-400 font-bold uppercase tracking-wider">Lokasi / Venue</p>
-                <p className="text-sm font-semibold text-gray-800 mt-0.5 truncate max-w-[250px]" title={event.location}>{event.location}</p>
+                <p className="text-sm font-semibold text-gray-800 mt-0.5" title={event.location}>{event.location}</p>
+              </div>
+            </div>
+
+            {/* harga per tiket */}
+            <div className="flex items-center justify-center gap-3 pt-3 border-t border-gray-100 mt-1">
+              <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-xxs text-gray-400 font-bold uppercase tracking-wider">Harga Tiket</p>                
+                <span className="text-lg sm:text-xl font-extrabold text-emerald-600 tracking-tight">{formatRupiah(event.price)}</span>
               </div>
             </div>
           </div>
 
+          {/* deskripsi event */}
           {event.description && (
             <div className="p-6 bg-gray-50/30">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Deskripsi Acara</h4>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{event.description}</p>
+              <h4 className="text-xs font-bold text-gray-1000 uppercase tracking-wider mb-2">Deskripsi Acara</h4>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{event.description}</p>
             </div>
           )}
         </div>
       )}
 
+      {/* deklarasi form input data pengunjung */}
       <form className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" onSubmit={handleSubmit} noValidate>
         {holders.map((holder, index) => (
           <section key={index} className="pd-form-section border-b border-gray-100 last:border-b-0">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                {/* <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">
-                  {index + 1}
-                </span> */}
-                Data Pengunjung {index + 1}
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">                
+                Data Pengunjung {index + 1} 
               </h3>
               
+              {/* Setting untuk toggle button agar memanggil variabel useProfileData */}
               {index === 0 ? (
                 <div className="flex items-center gap-2.5">
                   <span className="text-xs font-semibold text-gray-500">Gunakan data akun saya</span>
@@ -340,33 +366,52 @@ const ticketHolderSchema = z.object({
                 {holderErrors[index]?.name && <p className="pd-field__err">{holderErrors[index].name}</p>}
               </div>
 
-              {/* Nomor Handphone */}
-              <div className={`pd-field pd-field--full ${holderErrors[index]?.phone ? 'pd-field--error' : ''}`}>
-                <label className="pd-field__label" htmlFor={`f-phone-${index}`}>Nomor Handphone <span className="pd-req">*</span></label>
+              {/* Tanggal lahir */}
+              <div className={`pd-field pd-field--full ${holderErrors[index]?.tglLahir ? 'pd-field--error' : ''}`}>
+                <label className="pd-field__label" htmlFor={`f-date-${index}`}>Tanggal Lahir <span className="pd-req">*</span></label>
                 <input
-                  id={`f-phone-${index}`}
+                  id={`f-date-${index}`}
                   className="pd-field__input"
-                  type="tel"
-                  placeholder="Contoh: 081234567890"
-                  value={holder.phone}
-                  onChange={e => handleFieldChange(index, 'phone', e.target.value)}
+                  type="date"                  
+                  value={holder.tglLahir}
+                  onChange={e => handleFieldChange(index, 'tglLahir', e.target.value)}
                 />
-                {holderErrors[index]?.phone && <p className="pd-field__err">{holderErrors[index].phone}</p>}
+                {holderErrors[index]?.tglLahir && <p className="pd-field__err">{holderErrors[index].tglLahir}</p>}
               </div>
 
-              {/* Alamat Email */}
-              <div className={`pd-field pd-field--full ${holderErrors[index]?.email ? 'pd-field--error' : ''}`}>
-                <label className="pd-field__label" htmlFor={`f-email-${index}`}>Alamat Email <span className="pd-req">*</span></label>
-                <input
-                  id={`f-email-${index}`}
-                  className="pd-field__input"
-                  type="email"
-                  placeholder="Contoh: budi@gmail.com"
-                  value={holder.email}
-                  onChange={e => handleFieldChange(index, 'email', e.target.value)}
-                />
-                {holderErrors[index]?.email && <p className="pd-field__err">{holderErrors[index].email}</p>}
-              </div>
+              {/* Nomor Handphone & Email hanya untuk orang pertama (index === 0) */}
+              {/* Jika index > 0 maka dianggap orang kedua dst, maka field nomor handphone dan email akan dihilangkan */}
+              {index === 0 && (
+                <>
+                  {/* Nomor Handphone */}
+                  <div className={`pd-field pd-field--full ${holderErrors[index]?.phone ? 'pd-field--error' : ''}`}>
+                    <label className="pd-field__label" htmlFor={`f-phone-${index}`}>Nomor Handphone <span className="pd-req">*</span></label>
+                    <input
+                      id={`f-phone-${index}`}
+                      className="pd-field__input"
+                      type="tel"
+                      placeholder="Contoh: 081234567890"
+                      value={holder.phone}
+                      onChange={e => handleFieldChange(index, 'phone', e.target.value)}
+                    />
+                    {holderErrors[index]?.phone && <p className="pd-field__err">{holderErrors[index].phone}</p>}
+                  </div>
+
+                  {/* Alamat Email */}
+                  <div className={`pd-field pd-field--full ${holderErrors[index]?.email ? 'pd-field--error' : ''}`}>
+                    <label className="pd-field__label" htmlFor={`f-email-${index}`}>Alamat Email <span className="pd-req">*</span></label>
+                    <input
+                      id={`f-email-${index}`}
+                      className="pd-field__input"
+                      type="email"
+                      placeholder="Contoh: budi@gmail.com"
+                      value={holder.email}
+                      onChange={e => handleFieldChange(index, 'email', e.target.value)}
+                    />
+                    {holderErrors[index]?.email && <p className="pd-field__err">{holderErrors[index].email}</p>}
+                  </div>
+                </>
+              )}
 
               {/* Alamat Tinggal */}
               <div className={`pd-field pd-field--full ${holderErrors[index]?.address ? 'pd-field--error' : ''}`}>

@@ -43,6 +43,13 @@ class EventService
             $data['capacity'] = (int)($data['quota'] ?? 0);
         }
 
+        // tambahkan is_expired agar sama dengan TicketService
+        if (isset($data['date'])) {
+            $data['is_expired'] = substr($data['date'], 0, 10) < date('Y-m-d');
+        } else {
+            $data['is_expired'] = false;
+        }
+
         return $data;
     }
 

@@ -197,50 +197,34 @@ export default function UserDashboard() {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // Stats
-  // const stats = useMemo(() => ({
-  //   total: events.length,
-  //   sold: events.reduce((s, e) => s + Number(e.sold || 0), 0),
-  //   revenue: events.reduce((s, e) => s + Number(e.sold || 0) * Number(e.price || 0), 0),
-  //   stock: events.reduce((s, e) => s + Math.max(0, Number(e.quota || e.capacity || 0) - Number(e.sold || 0)), 0),
-  // }), [events])
-
-  // Filtered
+  // Filter untuk debounce dan menghilangkan event expired dari tampilan
+  // Ketika user melakukan search maka event expired akan tampil
   const filtered = useMemo(() => events.filter(e => {
-    const q = debouncedSearch.toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     const matchQ = !q || e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
     const matchC = filterCat === 'All' || e.category === filterCat
+
+    // mengecek apakah event expired dengan memanggil flag is_expired dari service backend
+    const today = new Date().toISOString().split('T')[0]
+    const isExpired = e.is_expired !== undefined
+      ? e.is_expired
+      : (e.date ? e.date.substring(0, 10) < today : false)
+
+    // Jika user tidak melakukan pencarian di search bar (!q), sembunyikan event yang sudah expired
+    // Jika debounce digunakan (user melakukan pencarian) maka program menampilkan event yang sudah expired
+    if (!q && isExpired) {
+      return false
+    }
+
     return matchQ && matchC
   }), [events, debouncedSearch, filterCat])
 
-
-
-  // Function untuk hapus
-  // const deleteMutation = useMutation({
-  //   mutationFn: async (id) => {
-  //     try {
-  //       const res = await eventApi.deleteEvent(id)
-  //       if (res?.success) return true
-  //       throw new Error()
-  //     } catch {
-  //       const curr = loadMock() || []
-  //       saveMock(curr.filter(e => e.id !== id))
-  //       return true
-  //     }
-  //   },
-  //   onSuccess: () => {
-  //     qc.invalidateQueries({ queryKey: ['pub-events'] })
-  //     setDeleteTarget(null)
-  //     toast.success('Event berhasil dihapus.')
-  //   },
-  //   onError: () => toast.error('Gagal menghapus event.'),
-  // })
 
   // Page utama HTML
   return (
     <div className="pd">    
 
-      {/* Toolbar */}
+      {/* Toolbar filter dan search bar */}
       <div className="pd-toolbar">
         <div className="pd-search">
           <span className="pd-search__icon">
@@ -253,12 +237,7 @@ export default function UserDashboard() {
             placeholder="Cari nama event atau lokasi…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-          />          
-          {/* {search && (
-            <button className="pd-search__clear" onClick={() => setSearch('')}>
-              <img src="/assets/cross.png" alt="Clear" />
-            </button>
-          )} */}
+          />                    
         </div>
 
         <div className="pd-filters">
@@ -303,6 +282,12 @@ export default function UserDashboard() {
             const isHot = pct >= 75 && !isFull
             const catClr = CAT_COLORS[event.category] || '#64748b'
 
+            // Mengambil tanggal hari ini
+            const today = new Date().toISOString().split('T')[0]
+            const isExpired = event.is_expired !== undefined
+              ? event.is_expired
+              : (event.date ? event.date.substring(0, 10) < today : false) // Jiika tgl event sudah melewati hari ini maka set false
+
             return (
               <article className="pd-card" key={event.id}>
                 {/* Banner */}
@@ -314,14 +299,35 @@ export default function UserDashboard() {
                     onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
                   />
                   <div className="pd-card__banner-overlay" />
+
+                  {/* Setting background agar blur ketika event expired */}
+                  {isExpired && (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 3,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                      backdropFilter: 'blur(1px)'
+                    }}/>
+                  )}
+
                   {/* Top row badges */}
                   <div className="pd-card__top">
                     <span className="pd-badge pd-badge--cat" style={{ '--cat-clr': catClr }}>
                       {CAT_EMOJI[event.category]} {event.category}
                     </span>
                     <div className="pd-card__top-right">
-                      {isFull && <span className="pd-badge pd-badge--full">SOLD OUT</span>}
-                      {isHot && <span className="pd-badge pd-badge--hot">HOT</span>}
+                      {isExpired ? (
+                        <span className="pd-badge pd-badge--full" style={{ backgroundColor: 'rgba(220, 38, 38, 0.9)', color: '#fff' }}>EXPIRED</span>
+                      ) : (
+                        <>
+                          {isFull && <span className="pd-badge pd-badge--full">SOLD OUT</span>}
+                          {isHot && <span className="pd-badge pd-badge--hot">HOT</span>}
+                        </>
+                      )}
                     </div>
                   </div>
                   {/* Title overlay */}
@@ -356,17 +362,54 @@ export default function UserDashboard() {
                       <span className="pd-card__kpiuser-val">{Number(event.quota).toLocaleString('id-ID')}</span>
                     </div>
                   </div>
-                  {/* Centered Purchase Button */}
-                  <Link
-                    to={`/user/pembelian/${event.id}`}                      
-                    state={{ event }}
-                    className="pd-purchase-btn-centered"
-                    title="Beli Tiket"
-                    id={`btn-purchase-${event.id}`}
-                  >
-                    <img src="/assets/cart.png" alt="Cart" className="pd-purchase-btn-icon" />
-                    Beli Tiket
-                  </Link>
+                  
+                  {/* setting tombol jika event kadaluarsa */}
+                  {isExpired ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="pd-purchase-btn-centered"
+                      style={{
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        borderColor: '#dc2626',
+                        color: '#ffffff',
+                        cursor: 'not-allowed',
+                        opacity: 0.9
+                      }}
+                    >
+                      Event Kadaluarsa
+                    </button>
+
+                  // setting tombol jika event sudah penuh
+                  ) : isFull ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="pd-purchase-btn-centered"
+                      style={{
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        borderColor: '#dc2626',
+                        color: '#ffffff',
+                        cursor: 'not-allowed',
+                        opacity: 0.9
+                      }}
+                    >
+                      Event Habis
+                    </button>
+                  // Jika event belum kadaluarsa dan belum penuh maka tampilkan tombol beli tiket
+                  // kemudian direct ke pembelian
+                  ) : (
+                    <Link
+                      to={`/user/pembelian/${event.id}`}                      
+                      state={{ event }}
+                      className="pd-purchase-btn-centered"
+                      title="Beli Tiket"
+                      id={`btn-purchase-${event.id}`}
+                    >
+                      <img src="/assets/cart.png" alt="Cart" className="pd-purchase-btn-icon" />
+                      Beli Tiket
+                    </Link>
+                  )}
                 </div>
               </article>
             )

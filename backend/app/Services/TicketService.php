@@ -41,7 +41,7 @@ class TicketService
             $data['payment_date'] = $data['updatedAt'] ?? null;
         }
 
-        // Format nested event detail jika ada (dari lookup)
+        // Format nested event detail jika ada (dari lookup)        
         if (isset($data['event']) && (is_array($data['event']) || is_object($data['event']))) {
             $eventData = (array) $data['event'];
             if (isset($eventData['_id'])) {
