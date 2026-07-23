@@ -48,6 +48,14 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  const updateUser = useCallback((updatedUserData) => {
+    setUser((prevUser) => {
+      const newUser = { ...prevUser, ...updatedUserData }
+      sessionStorage.setItem('user', JSON.stringify(newUser))
+      return newUser
+    })
+  }, [])
+
   const value = {
     user,
     token,
@@ -55,6 +63,7 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     login,
     logout,
+    updateUser,
   }
 
   return (

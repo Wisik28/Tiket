@@ -23,7 +23,7 @@ class UserService
         // Validasi opsional (tergantung field apa yang dikirim)
         // Kita buat sederhana: name jika dikirim tidak boleh kosong
         if (isset($input['name']) && empty(trim($input['name']))) {
-            throw new \InvalidArgumentException('Name cannot be empty.');
+            throw new \InvalidArgumentException('Nama harus diisi.');
         }
 
         // Jika bukan publisher, jangan izinkan edit company_name
@@ -36,7 +36,7 @@ class UserService
 
         $user = User::findById($userId);
         if (!$user) {
-            throw new \RuntimeException('User not found.');
+            throw new \RuntimeException('Pengguna tidak ditemukan.');
         }
 
         // Jangan kembalikan password di response
