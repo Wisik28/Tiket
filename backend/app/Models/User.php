@@ -51,4 +51,31 @@ class User
         
         return $userData;
     }
+
+    public static function updateProfile(string $id, array $data)
+    {
+        $collection = self::getCollection();
+        
+        $setFields = [];
+        $allowedFields = ['name', 'tglLahir', 'nik', 'address', 'mobile', 'company_name'];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($data[$field])) {
+                $setFields[$field] = $data[$field];
+            }
+        }
+        
+        if (empty($setFields)) {
+            return false;
+        }
+
+        $setFields['updatedAt'] = new \MongoDB\BSON\UTCDateTime();
+
+        $result = $collection->updateOne(
+            ['_id' => new \MongoDB\BSON\ObjectId($id)],
+            ['$set' => $setFields]
+        );
+
+        return $result->getModifiedCount() > 0;
+    }
 }
