@@ -64,7 +64,9 @@ export default function RegisterPage() {
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      nik: '', //ini juga bisa dihapus
       name: '',
+      tglLahir: '', //ini bisa dihapus
       email: '',
       password: '',
       role: 'user',

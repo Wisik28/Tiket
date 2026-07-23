@@ -1,8 +1,10 @@
 import axiosInstance from './axiosInstance'
 
+// consume API untuk get profile dan update profile milik user dan publisher
+
 export const userApi = {
   getProfile: async () => {
-    const response = await axiosInstance.get('/user/profile')
+    const response = await axiosInstance.get('/user/profile')    
     return response.data
   },
   updateProfile: async (profileData) => {
