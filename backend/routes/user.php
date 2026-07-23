@@ -31,4 +31,10 @@ return function (\FastRoute\RouteCollector $r) {
             [RoleMiddleware::class, 'user']
         ]
     ]);
+    // PUT /api/user/profile — update data profile (terbuka untuk user & publisher terautentikasi)
+    $r->addRoute('PUT', '/api/user/profile', [
+        'App\Controllers\UserController',
+        'updateProfile',
+        [AuthMiddleware::class]
+    ]);
 };
