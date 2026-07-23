@@ -185,7 +185,7 @@ export default function DaftarPesanan() {
                   <th className="px-6 py-4 text-xxs font-bold text-gray-1000 uppercase">Pembeli</th>
                   <th className="px-6 py-4 text-xxs font-bold text-gray-1000 uppercase">Tanggal</th>
                   <th className="px-6 py-4 text-xxs font-bold text-gray-1000 uppercase">Jumlah</th>
-                  <th className="px-6 py-4 text-xxs font-bold text-gray-1000 uppercase text-center">Status</th>
+                  {/* <th className="px-6 py-4 text-xxs font-bold text-gray-1000 uppercase text-center">Status</th> */}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -208,24 +208,24 @@ export default function DaftarPesanan() {
                       <div className="text-sm font-bold text-gray-900">{order.quantity} Tiket</div>
                       <div className="text-xs text-indigo-600 font-semibold mt-0.5">{formatRupiah(order.total_price)}</div>
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    {/* <td className="px-6 py-4 text-center">
                       {order.status === 'paid' ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
+                        <span className="items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-100">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
                           Berhasil
                         </span>
                       ) : order.status === 'failed' ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100">
+                        <span className="items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100">
                           <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
                           Gagal
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-100">
+                        <span className="items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-100">
                           <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
                           Pending
                         </span>
                       )}
-                    </td>
+                    </td> */}
                   </tr>
                 ))}
               </tbody>
