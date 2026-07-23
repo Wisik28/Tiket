@@ -37,7 +37,7 @@ export default function Profile() {
     <div className="max-w-3xl mx-auto my-6">
       {/* Profile Card Wrapper */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md">
-        
+
         {/* Decorative Top Accent Banner */}
         <div className="h-32 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 relative">
           <div className="absolute -bottom-12 left-8">
@@ -56,7 +56,7 @@ export default function Profile() {
             </div>
             <div>
               <span className="items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>                
+                <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
                 {user?.role === 'user' ? "Pembeli" : user?.role === 'admin' ? "Admin" : "Penjual/Publisher"}
               </span>
             </div>
@@ -65,10 +65,23 @@ export default function Profile() {
 
         {/* Detailed Fields Grid */}
         <div className="p-8">
-          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-6">Informasi Akun</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+          <h3 className="text-sm font-semibold text-gray-1000 uppercase tracking-wider mb-6">Informasi Akun</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-1">
+
+            {/* NIK */}
+            <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+              <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V8a2 2 0 00-2-2h-3M10 6a2 2 0 012-2h0a2 2 0 012 2m-4 0h4m-4 7a2 2 0 104 0 2 2 0 00-4 0zm-1 5a4 4 0 016 0" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">NIK</p>
+                <p className="text-base font-semibold text-gray-800 mt-1">{user?.nik || '—'}</p>
+              </div>
+            </div>
+
             {/* Nama Lengkap */}
             <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200">
               <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
@@ -99,12 +112,26 @@ export default function Profile() {
             <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200">
               <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Email</p>
                 <p className="text-base font-semibold text-gray-800 mt-1">{user?.email || '—'}</p>
+              </div>
+            </div>
+
+            {/* Nomor Handphone */}
+            <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+              <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                  <line x1="12" y1="18" x2="12.01" y2="18" strokeLinecap="round" strokeWidth="3" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Nomor Handphone</p>
+                <p className="text-base font-semibold text-gray-800 mt-1">{user?.mobile || '—'}</p>
               </div>
             </div>
 
@@ -119,21 +146,7 @@ export default function Profile() {
                 <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Alamat Lengkap Institusi</p>
                 <p className="text-base font-semibold text-gray-800 mt-1">{user?.address || '—'}</p>
               </div>
-            </div>
-
-            {/* Nomor Handphone */}
-            <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200">
-              <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                  <line x1="12" y1="18" x2="12.01" y2="18" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Nomor Handphone</p>
-                <p className="text-base font-semibold text-gray-800 mt-1">{user?.mobile || '—'}</p>
-              </div>
-            </div>
+            </div>            
 
           </div>
         </div>
