@@ -110,8 +110,9 @@ export default function Profile() {
       })
       setErrors(formattedErrors)
 
-      const firstError = validationResult.error.issues[0]?.message || 'Harap lengkapi semua field dengan benar'
-      toast.error(firstError)
+      // notifikasi error di pojok kanan atas
+      // const firstError = validationResult.error.issues[0]?.message || 'Harap lengkapi semua field dengan benar'
+      // toast.error(firstError)
       return
     }
 
@@ -208,8 +209,13 @@ export default function Profile() {
                     />
                     {errors.nik && <p className="text-xs text-red-500 mt-1.5 font-medium">{errors.nik}</p>}
                   </>
-                ) : (
-                  <p className="text-base font-semibold text-gray-800 mt-1">{user?.nik || '—'}</p>
+                ) : (                  
+                  <p
+                    className="text-base font-semibold text-gray-800 mt-1"
+                    title={!user?.nik ? "NIK belum diisi" : ""}
+                  >
+                    {user?.nik || "—"}
+                  </p>
                 )}
               </div>
             </div>
@@ -239,8 +245,13 @@ export default function Profile() {
                     />
                     {errors.name && <p className="text-xs text-red-500 mt-1.5 font-medium">{errors.name}</p>}
                   </>
-                ) : (
-                  <p className="text-base font-semibold text-gray-800 mt-1">{user?.name || '—'}</p>
+                ) : (                  
+                  <p
+                    className="text-base font-semibold text-gray-800 mt-1"
+                    title={!user?.name ? "Nama belum diisi" : ""}
+                  >
+                    {user?.name || "—"}
+                  </p>
                 )}
               </div>
             </div>
@@ -270,8 +281,13 @@ export default function Profile() {
                     />
                     {errors.company_name && <p className="text-xs text-red-500 mt-1.5 font-medium">{errors.company_name}</p>}
                   </>
-                ) : (
-                  <p className="text-base font-semibold text-gray-800 mt-1">{user?.company_name || '—'}</p>
+                ) : (                  
+                  <p
+                    className="text-base font-semibold text-gray-800 mt-1"
+                    title={!user?.company_name ? "Nama perusahaan/institusi belum diisi" : ""}
+                  >
+                    {user?.company_name || "—"}
+                  </p>
                 )}
               </div>
             </div>
@@ -301,8 +317,13 @@ export default function Profile() {
                     />
                     {errors.email && <p className="text-xs text-red-500 mt-1.5 font-medium">{errors.email}</p>}
                   </>
-                ) : (
-                  <p className="text-base font-semibold text-gray-800 mt-1">{user?.email || '—'}</p>
+                ) : (                  
+                  <p
+                    className="text-base font-semibold text-gray-800 mt-1"
+                    title={!user?.email ? "Email belum diisi" : ""}
+                  >
+                    {user?.email || "—"}
+                  </p>
                 )}
               </div>
             </div>
@@ -334,7 +355,12 @@ export default function Profile() {
                     {errors.mobile && <p className="text-xs text-red-500 mt-1.5 font-medium">{errors.mobile}</p>}
                   </>
                 ) : (
-                  <p className="text-base font-semibold text-gray-800 mt-1">{user?.mobile || '—'}</p>
+                  <p
+                    className="text-base font-semibold text-gray-800 mt-1"
+                    title={!user?.mobile ? "Nomor handphone belum diisi" : ""}
+                  >
+                    {user?.mobile || "—"}
+                  </p>
                 )}
               </div>
             </div>
@@ -365,8 +391,13 @@ export default function Profile() {
                     />
                     {errors.address && <p className="text-xs text-red-500 mt-1.5 font-medium">{errors.address}</p>}
                   </>
-                ) : (
-                  <p className="text-base font-semibold text-gray-800 mt-1">{user?.address || '—'}</p>
+                ) : (                  
+                  <p
+                    className="text-base font-semibold text-gray-800 mt-1"
+                    title={!user?.address ? "Alamat belum diisi" : ""}
+                  >
+                    {user?.address || "—"}
+                  </p>
                 )}
               </div>
             </div>

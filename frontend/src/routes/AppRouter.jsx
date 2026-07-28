@@ -1,10 +1,12 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '../context/AuthContext'
+// import scrollToTop dari folder yang sama
+import ScrollToTop from './ScrollToTop'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
 
-// Publisher import
+// import untuk publisher
 import PublisherLayout from '../layouts/PublisherLayout'
 import PublisherPage from '../pages/publisher/Dashboard'
 import CreateEventPage from '../pages/publisher/CreateEvent'
@@ -12,7 +14,7 @@ import UpdateEventPage from '../pages/publisher/UpdateEvent'
 import ProfilePage from '../pages/publisher/Profile'
 import DaftarPesananPage from '../pages/publisher/DaftarPesanan'
 
-// user import
+// import untuk user
 import UserPage from '../pages/user/Dashboard'
 import UserLayout from '../layouts/UserLayout'
 import RiwayatPembelianPage from '../pages/user/RiwayatPembelian'
@@ -27,19 +29,12 @@ import PembayaranPage from '../pages/user/Pembayaran'
 import CobaPage from '../pages/publisher/Coba'
 import CobaLagiPage from '../pages/publisher/CobaLagi'
 
-// Halaman placeholder sementara
-function HomePage() {
-  return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Selamat Datang di EventTicket</h1>
-      <p>Halaman utama untuk user</p>
-    </div>
-  )
-}
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
+    {/* menggunakan scrollToTop yang sudah diimport */}
+      <ScrollToTop />
       <AuthProvider>
         <Routes>
           {/* Routing autentikasi */}
@@ -74,7 +69,7 @@ export default function AppRouter() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-      </AuthProvider>
+      </AuthProvider>      
     </BrowserRouter>
   )
 }

@@ -1,10 +1,12 @@
 import axiosInstance from './axiosInstance'
 
 export const ticketApi = {  
+  // endpoint ke page order
   createOrder: async (orderData) => {
     const response = await axiosInstance.post('/orders', orderData)
     return response.data
   },
+  // endpoint ke page
   getMyOrders: async () => {
     const response = await axiosInstance.get('/orders/my')
     return response.data
@@ -17,6 +19,7 @@ export const ticketApi = {
     const response = await axiosInstance.get(`/user/tickets?page=${page}`)
     return response.data
   },
+  // endpoint ke ticket
   purchaseTicket: async (ticketData) => {
     const response = await axiosInstance.post('/user/tickets', ticketData)
     return response.data
