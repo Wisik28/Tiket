@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "react-qr-code": "^2.2.0"
+    "react-qr-code": "^2.2.0",
+    "react-tooltip": "^6.0.8"
   }
 }

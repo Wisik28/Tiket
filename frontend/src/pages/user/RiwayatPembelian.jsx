@@ -1,11 +1,15 @@
-import React, { useRef, useEffect, useMemo } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ticketApi } from '../../api/ticketApi'
+import useDebounce from '../../hooks/useDebounce'
 
 export default function RiwayatPembelian() {
   const navigate = useNavigate()
   const bottomRef = useRef(null)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState('semua')
+  const debouncedSearch = useDebounce(search, 500)
 
   const {
     data,
@@ -32,10 +36,43 @@ export default function RiwayatPembelian() {
     }
   })
 
-  const purchases = useMemo(
-    () => data?.pages.flatMap((page) => page.data) ?? [],
-    [data]
-  )
+  const purchases = useMemo(() => {
+    const rawPurchases = data?.pages.flatMap((page) => page.data) ?? []
+    return rawPurchases.filter((purchase) => {
+      // Filter Kata Kunci (Search)
+      const query = debouncedSearch.toLowerCase().trim()
+      const titleMatch = purchase.event?.title?.toLowerCase().includes(query) ?? false
+      const categoryMatch = purchase.event?.category?.toLowerCase().includes(query) ?? false
+      const matchesSearch = !query || titleMatch || categoryMatch
+
+      if (!matchesSearch) return false
+      if (filter === 'semua') return true
+
+      // 2. Filter Rentang Waktu (Filter)
+      const purchaseDate = new Date(purchase.created_at || purchase.event?.date)
+      const now = new Date()
+
+      if (filter === 'hari') {
+        return purchaseDate.toDateString() === now.toDateString()
+      }
+      if (filter === 'minggu') {
+        const oneWeekAgo = new Date(now)
+        oneWeekAgo.setDate(now.getDate() - 7)
+        return purchaseDate >= oneWeekAgo
+      }
+      if (filter === 'bulan') {
+        return (
+          purchaseDate.getMonth() === now.getMonth() &&
+          purchaseDate.getFullYear() === now.getFullYear()
+        )
+      }
+      if (filter === 'tahun') {
+        return purchaseDate.getFullYear() === now.getFullYear()
+      }
+
+      return true
+    })
+  }, [data, debouncedSearch, filter])
 
   // IntersectionObserver: auto-fetch next page saat scroll ke bawah
   useEffect(() => {
@@ -103,13 +140,46 @@ export default function RiwayatPembelian() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto my-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Riwayat Pembelian</h1>
-          <p className="text-gray-500 text-sm mt-1">Daftar transaksi dan tiket acara yang telah Anda beli.</p>
-        </div>
-      </div>
+    <div className="max-w-4xl mx-auto my-6 space-y-6">      
+
+    <div className="flex flex-col md:flex-row gap-4 items-center">
+            {/* Search bar */}
+            <div className="relative flex-1 w-full flex items-center">              
+              <span className="absolute left-4 flex items-center justify-center pointer-events-none text-gray-400">
+                <img src="/assets/search.png" alt="Search" className="w-4 h-4 object-contain" />    
+              </span>
+              <input
+                type="text"
+                placeholder="Cari judul event atau nama pembeli..."
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />              
+            </div>
+
+            {/* Filter dropdown */}
+            <div className="relative w-full md:w-64 flex items-center">
+              <span className="absolute left-4 flex items-center justify-center pointer-events-none text-gray-400">
+                <img src="/assets/filter.png" alt="Filter" className="w-4 h-4 object-contain" />    
+              </span>
+              <select
+                className="w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200 cursor-pointer"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <option value="semua">Semua Waktu</option>
+                <option value="hari">Hari Ini</option>
+                <option value="minggu">Minggu Ini</option>
+                <option value="bulan">Bulan Ini</option>
+                <option value="tahun">Tahun Ini</option>
+              </select>
+              <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </span>
+            </div>
+          </div>    
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {purchases.length === 0 ? (
