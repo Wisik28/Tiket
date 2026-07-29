@@ -3,6 +3,14 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ticketApi } from '../../api/ticketApi'
 import useDebounce from '../../hooks/useDebounce'
+import '../../style/DashboardPublisher.css'
+
+const CATEGORIES = ['Belum Dibayar', 'Gagal', 'Mendatang', 'Selesai']
+const CAT_COLORS = {
+  Gagal: '',
+  Mendatang: '',
+  Selesai: ''
+}
 
 export default function RiwayatPembelian() {
   const navigate = useNavigate()
@@ -10,6 +18,7 @@ export default function RiwayatPembelian() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('semua')
   const debouncedSearch = useDebounce(search, 500)
+  const [filterCat, setFilterCat] = useState('All')
 
   const {
     data,
@@ -21,6 +30,8 @@ export default function RiwayatPembelian() {
   } = useInfiniteQuery({
     queryKey: ['my-tickets'],
     queryFn: async ({ pageParam }) => {
+      // consume API untuk mengambil data tiket yang pernah dibeli
+      // request akan dikirim ke axiosInstance
       const res = await ticketApi.getMyTickets(pageParam)
       if (res?.success && Array.isArray(res?.data)) {
         return res
@@ -39,16 +50,42 @@ export default function RiwayatPembelian() {
   const purchases = useMemo(() => {
     const rawPurchases = data?.pages.flatMap((page) => page.data) ?? []
     return rawPurchases.filter((purchase) => {
-      // Filter Kata Kunci (Search)
+      // Filter Kata Kunci 
       const query = debouncedSearch.toLowerCase().trim()
       const titleMatch = purchase.event?.title?.toLowerCase().includes(query) ?? false
       const categoryMatch = purchase.event?.category?.toLowerCase().includes(query) ?? false
       const matchesSearch = !query || titleMatch || categoryMatch
 
+      // tidak menampilkan result ketika pencarian tidak ada yang sesuai
       if (!matchesSearch) return false
-      if (filter === 'semua') return true
 
-      // 2. Filter Rentang Waktu (Filter)
+      // logic untuk menentukan tampilan daftar event berdasarkan ketiga filter
+      // Filter Status Kategori (Gagal / Mendatang / Selesai)
+      if (filterCat === 'Gagal') {
+        const isFailed = purchase.status === 'failed' || purchase.status === 'gagal' || purchase.status === 'expired'
+        if (!isFailed) {
+          return false
+        }
+      } else if (filterCat === 'Belum Dibayar') {
+        const isUnpaid = purchase.status === 'pending'
+        if (!isUnpaid) {
+          return false
+        }
+      } else if (filterCat === 'Mendatang') {
+        const isUpcoming = purchase.status === 'paid' && new Date(purchase.event?.date) >= new Date()
+        if (!isUpcoming) {
+          return false
+        }
+      } else if (filterCat === 'Selesai') {
+        const isDone = purchase.status === 'paid' && new Date(purchase.event?.date) < new Date() || purchase.status === 'completed'
+        if (!isDone) {
+          return false
+        }
+      } else if (filterCat === 'Semua') {
+        return true
+      }
+
+      // Filter Rentang Waktu 
       const purchaseDate = new Date(purchase.created_at || purchase.event?.date)
       const now = new Date()
 
@@ -72,20 +109,23 @@ export default function RiwayatPembelian() {
 
       return true
     })
-  }, [data, debouncedSearch, filter])
+  }, [data, debouncedSearch, filter, filterCat])
 
-  // IntersectionObserver: auto-fetch next page saat scroll ke bawah
+  // auto fetch next page saat scroll ke bawah
+  // digunakan untuk infinite pagination
   useEffect(() => {
     const el = bottomRef.current
-    if (!el) return
+    if (!el || !hasNextPage || isFetchingNextPage) return
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (entries[0].isIntersecting) {
           fetchNextPage()
         }
       },
       { threshold: 0.1 }
     )
+
     observer.observe(el)
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
@@ -118,23 +158,18 @@ export default function RiwayatPembelian() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto my-6 p-12 text-center">
-        <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-500 text-sm">Memuat riwayat pembelian...</p>
+      <div className="max-w-4xl mx-auto my-6 p-12 flex flex-col items-center justify-center space-y-3">
+        <div className="w-10 h-10 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin" />
+        <p className="text-gray-500 text-sm font-medium">Memuat riwayat pembelian...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto my-6 p-12 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900">Gagal memuat data</h3>
-        <p className="text-gray-500 text-sm mt-1">{error.message}</p>
+      <div className="max-w-4xl mx-auto my-6 p-8 bg-red-50 border border-red-200 rounded-2xl text-center space-y-3">
+        <p className="text-red-700 font-semibold text-sm">Terjadi Kesalahan</p>
+        <p className="text-red-500 text-xs">{error.message || 'Gagal memuat data'}</p>
       </div>
     )
   }
@@ -142,44 +177,85 @@ export default function RiwayatPembelian() {
   return (
     <div className="max-w-4xl mx-auto my-6 space-y-6">      
 
-    <div className="flex flex-col md:flex-row gap-4 items-center">
-            {/* Search bar */}
-            <div className="relative flex-1 w-full flex items-center">              
-              <span className="absolute left-4 flex items-center justify-center pointer-events-none text-gray-400">
-                <img src="/assets/search.png" alt="Search" className="w-4 h-4 object-contain" />    
-              </span>
-              <input
-                type="text"
-                placeholder="Cari judul event atau nama pembeli..."
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />              
-            </div>
+      <div className="space-y-3">
+        {/* Search bar & Filter Waktu */}
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          {/* Search bar */}
+          <div className="relative flex-1 w-full flex items-center">              
+            <span className="absolute left-4 flex items-center justify-center pointer-events-none text-gray-400">
+              <img src="/assets/search.png" alt="Search" className="w-4 h-4 object-contain" />    
+            </span>
+            <input
+              type="text"
+              placeholder="Cari judul event..."
+              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />              
+          </div>
 
-            {/* Filter dropdown */}
-            <div className="relative w-full md:w-64 flex items-center">
-              <span className="absolute left-4 flex items-center justify-center pointer-events-none text-gray-400">
-                <img src="/assets/filter.png" alt="Filter" className="w-4 h-4 object-contain" />    
-              </span>
-              <select
-                className="w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200 cursor-pointer"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
+          {/* Filter dropdown */}
+          <div className="relative group w-full md:w-64">
+ 
+          {/* Tooltip */}
+          <div className="absolute -top-10 left-0 px-3 py-2 text-xs text-white bg-gray-800 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+            Pilih rentang waktu untuk memfilter event
+          </div>
+
+          <div className="relative flex items-center">
+            <span className="absolute left-4 flex items-center justify-center pointer-events-none text-gray-400">
+              <img
+                src="/assets/filter.png"
+                alt="Filter"
+                className="w-4 h-4 object-contain"
+              />
+            </span>
+
+            <select
+              className="w-full pl-11 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition duration-200 cursor-pointer"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              <option value="semua">Semua Waktu</option>
+              <option value="tahun">Tahun Ini</option>
+              <option value="bulan">Bulan Ini</option>
+              <option value="minggu">Minggu Ini</option>
+              <option value="hari">Hari Ini</option>
+            </select>
+
+            <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
               >
-                <option value="semua">Semua Waktu</option>
-                <option value="hari">Hari Ini</option>
-                <option value="minggu">Minggu Ini</option>
-                <option value="bulan">Bulan Ini</option>
-                <option value="tahun">Tahun Ini</option>
-              </select>
-              <span className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </span>
-            </div>
-          </div>    
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+        </div>
+
+        {/* Filter Kategori Gagal - Mendatang - Selesai */}
+        <div className="pd-filters flex flex-wrap gap-2 pt-1">
+          {['All', ...CATEGORIES].map(cat => (
+            <button
+              key={cat}
+              className={`pd-filter-btn ${filterCat === cat ? 'pd-filter-btn--active' : ''}`}
+              onClick={() => setFilterCat(cat)}
+            >
+              {cat !== 'All' && <span className="pd-filter-btn__dot" style={{ background: CAT_COLORS[cat] }} />}
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {purchases.length === 0 ? (
@@ -241,8 +317,8 @@ export default function RiwayatPembelian() {
                     <h3 className="text-base font-bold text-gray-900 leading-snug">{purchase.event?.title || 'Event tidak ditemukan'}</h3>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1.5">
                       <span>Tanggal Acara: <strong>{formatDate(purchase.event?.date)} · {formatTime(purchase.event?.date)}</strong></span>
-                      {/* <span className="hidden md:inline text-gray-300">•</span> */}
-                      {/* <span>ID Transaksi: <strong className="font-mono text-xs">{purchase.id}</strong></span> */}
+                      <span className="hidden md:inline text-gray-300">•</span>
+                      <span>Transaksi: <strong className="font-mono text-xs">{formatDate(purchase.createdAt)}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -250,7 +326,7 @@ export default function RiwayatPembelian() {
                 {/* Menampilkan status pada card */}
                 <div className="flex md:flex-col justify-between items-end gap-2 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100">
                   <div className="text-right">
-                    <p className="text-xs text-gray-400">Total Pembayaran ({purchase.quantity} Tiket)</p>
+                    <p className="text-xs text-gray-400">Total Pembelian ({purchase.quantity} Tiket)</p>
                     <p className="text-lg font-bold text-indigo-600 mt-0.5">{formatRupiah(purchase.total_price)}</p>
                   </div>
                   {purchase.status === 'paid' ? (

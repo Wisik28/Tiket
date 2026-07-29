@@ -229,22 +229,28 @@ export default function Pembayaran() {
 
       {/* Action Buttons */}
       <div className="space-y-3">
-        <button
-          onClick={() => {
-            // toast.success('Memeriksa status pembayaran...')
-            navigate('/user/riwayatPembelian')
-          }}
-          className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:from-indigo-700 hover:to-purple-700 transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-           Saya Sudah Bayar </button>
+        {ticket.status === 'paid' && (
+          <button
+            onClick={() => {
+              // toast.success('Memeriksa status pembayaran...')
+              navigate('/user/riwayatPembelian')
+            }}
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:from-indigo-700 hover:to-purple-700 transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 15h.008v.008H15V15zm0 2.25h.008v.008H15v-.008zm0 2.25h.008v.008H15v-.008zm2.25-2.25h.008v.008H17.25v-.008zm0 2.25h.008v.008H17.25v-.008zm2.25-2.25h.008v.008H19.5v-.008zm0 2.25h.008v.008H19.5v-.008zM17.25 15h.008v.008H17.25V15zm2.25-2.25h.008v.008H19.5v-.008z" />
+            </svg>
+            Tampilkan QR Code
+          </button>
+        )}
 
         <button
           onClick={() => navigate('/user/dashboard')}
           className="w-full py-3 px-4 rounded-xl bg-white border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition cursor-pointer text-center"
-        > Kembali ke Dashboard </button>
+        >
+          Kembali ke Dashboard
+        </button>
       </div>
     </div>
   )

@@ -15,6 +15,7 @@ export const ticketApi = {
     const response = await axiosInstance.get(`/orders/${id}`)
     return response.data
   },
+  // getMyTickets request dikirim ke axiosInstance
   getMyTickets: async (page = 1) => {
     const response = await axiosInstance.get(`/user/tickets?page=${page}`)
     return response.data

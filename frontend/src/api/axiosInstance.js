@@ -10,6 +10,8 @@ const axiosInstance = axios.create({
 })
 
 // Request interceptor untuk memberi token atuentikasi
+// kemudian request dikirim ke server backend
+// function ini berfungsi untuk memberi token atuentikasi pada request
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem('token')
@@ -26,7 +28,8 @@ axiosInstance.interceptors.request.use(
   }
 )
 
-// Respons interceptor untuk eror handling
+// Respons interceptor untuk eror handling kemudian menghapus token dari sessionStorage
+// dilakukan ketika token autentikasi sudah kadaluwarsa dan user diharuskan login kembali
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
