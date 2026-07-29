@@ -41,18 +41,16 @@ export default function UserLayout() {
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <aside
-        className={`${
-          isCollapsed ? 'w-20' : 'w-64'
-        } bg-indigo-900 text-white flex flex-col justify-between transition-all duration-300 ease-in-out`}
+        className={`${isCollapsed ? 'w-20' : 'w-64'
+          } bg-indigo-900 text-white flex flex-col justify-between transition-all duration-300 ease-in-out`}
       >
         <div className={isCollapsed ? 'p-4' : 'p-6'}>
           {/* Tombol Menu yang dapat diklik untuk memperkecil/memperbesar sidebar */}
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`flex items-center gap-3 text-xl font-bold tracking-wider text-white hover:text-indigo-200 transition-colors focus:outline-none cursor-pointer w-full ${
-              isCollapsed ? 'justify-center' : ''
-            }`}
+            className={`flex items-center gap-3 text-xl font-bold tracking-wider text-white hover:text-indigo-200 transition-colors focus:outline-none cursor-pointer w-full ${isCollapsed ? 'justify-center' : ''
+              }`}
             title={isCollapsed ? 'Buka Sidebar' : 'Kecilkan Sidebar'}
           >
             <svg
@@ -76,13 +74,11 @@ export default function UserLayout() {
               className={({ isActive }) => {
                 const isDashboardActive =
                   isActive || location.pathname.startsWith('/user/pembelian')
-                return `flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isCollapsed ? 'justify-center px-2' : 'px-4'
-                } ${
-                  isDashboardActive
+                return `flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isCollapsed ? 'justify-center px-2' : 'px-4'
+                  } ${isDashboardActive
                     ? 'bg-white text-indigo-900 shadow-sm'
                     : 'hover:bg-indigo-800 text-white'
-                }`
+                  }`
               }}
             >
               <svg
@@ -109,13 +105,11 @@ export default function UserLayout() {
                   isActive ||
                   location.pathname.startsWith('/user/detailRiwayat/') ||
                   location.pathname.startsWith('/user/pembayaran')
-                return `flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isCollapsed ? 'justify-center px-2' : 'px-4'
-                } ${
-                  isRiwayatActive
+                return `flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isCollapsed ? 'justify-center px-2' : 'px-4'
+                  } ${isRiwayatActive
                     ? 'bg-white text-indigo-900 shadow-sm'
                     : 'hover:bg-indigo-800 text-white'
-                }`
+                  }`
               }}
             >
               <svg
@@ -138,12 +132,10 @@ export default function UserLayout() {
               to="/user/profileUser"
               title="Profil User"
               className={({ isActive }) =>
-                `flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isCollapsed ? 'justify-center px-2' : 'px-4'
-                } ${
-                  isActive
-                    ? 'bg-white text-indigo-900 shadow-sm'
-                    : 'hover:bg-indigo-800 text-white'
+                `flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isCollapsed ? 'justify-center px-2' : 'px-4'
+                } ${isActive
+                  ? 'bg-white text-indigo-900 shadow-sm'
+                  : 'hover:bg-indigo-800 text-white'
                 }`
               }
             >
@@ -166,9 +158,8 @@ export default function UserLayout() {
         </div>
 
         <div
-          className={`border-t border-indigo-800 flex items-center ${
-            isCollapsed ? 'p-4 justify-center flex-col gap-3' : 'p-6 justify-between'
-          }`}
+          className={`border-t border-indigo-800 flex items-center ${isCollapsed ? 'p-4 justify-center flex-col gap-3' : 'p-6 justify-between'
+            }`}
         >
           {!isCollapsed && (
             <div className="truncate pr-2">

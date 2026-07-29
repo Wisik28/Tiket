@@ -256,45 +256,35 @@ export default function PublisherDashboard() {
 
       {/* Header */}
       <header className="pd-header">
-        <div className="pd-header__left">
+          <div className="pd-header__left">
           {/* <p className="pd-header__eyebrow">Dashboard Publisher</p> */}
-          <h1 className="pd-header__title">Kelola Event &amp; Tiket</h1>
-          <p className="pd-header__sub">Publikasikan event, atur tiket, dan pantau penjualan secara real-time.</p>
-        </div>
-        {/* <Link to="/publisher/events/create" className="pd-btn pd-btn--primary pd-btn--lg">
-          Buat Acara Baru
-        </Link> */}
+            <h1 className="pd-header__title">Kelola Event &amp; Tiket</h1>
+            <p className="pd-header__sub">Publikasikan event, atur tiket, dan pantau penjualan secara real-time.</p>
+          </div>
       </header>
 
 
       {/* Ringkasan statistik */}
       <div className="pd-stats">
         <div className="pd-stat">
-          <div className="pd-stat__icon"><CalendarIcon /></div>
+            <div className="pd-stat__icon"><CalendarIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num">{stats.total}</span>
             <span className="pd-stat__lbl">Total Event</span>
           </div>
         </div>
         <div className="pd-stat">
-          <div className="pd-stat__icon"><TicketIcon /></div>
+            <div className="pd-stat__icon"><TicketIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num">{stats.sold.toLocaleString('id-ID')}</span>
             <span className="pd-stat__lbl">Tiket Terjual</span>
           </div>
         </div>
         <div className="pd-stat">
-          <div className="pd-stat__icon"><RevenueIcon /></div>
+            <div className="pd-stat__icon"><RevenueIcon /></div>
           <div className="pd-stat__info">
             <span className="pd-stat__num pd-stat__num--sm">{formatRupiah(stats.revenue)}</span>
             <span className="pd-stat__lbl">Total Pendapatan</span>
-          </div>
-        </div>
-        <div className="pd-stat">
-          <div className="pd-stat__icon"><StockIcon /></div>
-          <div className="pd-stat__info">
-            <span className="pd-stat__num">{stats.stock.toLocaleString('id-ID')}</span>
-            <span className="pd-stat__lbl">Total Sisa Kuota</span>
           </div>
         </div>
       </div>
