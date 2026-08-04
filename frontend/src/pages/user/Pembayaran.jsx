@@ -32,6 +32,17 @@ export default function Pembayaran() {
 
   const [timeLeft, setTimeLeft] = useState('')
 
+  // Jika status pembayaran berhasil (paid), redirect langsung ke DetailRiwayat
+  useEffect(() => {
+    if (ticket && ticket.status === 'paid') {
+      toast.success('Pembayaran berhasil!')
+      navigate(`/user/detailRiwayat/${ticket.id}`, {
+        state: { purchase: ticket },
+        replace: true
+      })
+    }
+  }, [ticket, navigate])
+
   useEffect(() => {
     if (!ticket) return
 
@@ -92,25 +103,28 @@ export default function Pembayaran() {
     )
   }
 
-  if (!ticket) {
-    return (
-      <div className="max-w-md mx-auto my-12 p-8 text-center bg-white rounded-3xl shadow-lg border border-gray-100">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+  if (!ticket || ticket.status === 'paid') {
+    if (!ticket) {
+      return (
+        <div className="max-w-md mx-auto my-12 p-8 text-center bg-white rounded-3xl shadow-lg border border-gray-100">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Transaksi Tidak Ditemukan</h3>
+          <button onClick={() => navigate('/user/dashboard')} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
+            Kembali ke Dashboard
+          </button>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900">Transaksi Tidak Ditemukan</h3>
-        <button onClick={() => navigate('/user/dashboard')} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
-          Kembali ke Dashboard
-        </button>
-      </div>
-    )
+      )
+    }
+    return null
   }
 
   return (
     <div className="max-w-md mx-auto my-8 px-4">
-      {/* Card untuk alert: batas waktu, gagal, dan berhasil */}
+      {/* Card untuk alert: batas waktu dan gagal */}
       {ticket.status === 'pending' && (
         <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
@@ -128,20 +142,6 @@ export default function Pembayaran() {
             <span className={`px-3 py-1.5 rounded-xl font-mono text-base font-bold bg-white text-red-600 border border-red-200/50 shadow-sm ${timeLeft === 'EXPIRED' ? 'text-gray-400 border-gray-200' : ''}`}>
               {timeLeft}
             </span>
-          </div>
-        </div>
-      )}
-
-      {ticket.status === 'paid' && (
-        <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-sm animate-fade-in">
-          <div className="p-2.5 bg-green-100 rounded-xl text-green-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15L15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-xs text-green-600 font-bold uppercase tracking-wider">Status Pembayaran</p>
-            <p className="text-sm font-bold text-green-700">Pembayaran Berhasil! E-Tiket Anda telah terbit.</p>
           </div>
         </div>
       )}
@@ -227,24 +227,8 @@ export default function Pembayaran() {
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Button back ke dashboard */}
       <div className="space-y-3">
-        {ticket.status === 'paid' && (
-          <button
-            onClick={() => {
-              // toast.success('Memeriksa status pembayaran...')
-              navigate('/user/riwayatPembelian')
-            }}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:from-indigo-700 hover:to-purple-700 transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 15h.008v.008H15V15zm0 2.25h.008v.008H15v-.008zm0 2.25h.008v.008H15v-.008zm2.25-2.25h.008v.008H17.25v-.008zm0 2.25h.008v.008H17.25v-.008zm2.25-2.25h.008v.008H19.5v-.008zm0 2.25h.008v.008H19.5v-.008zM17.25 15h.008v.008H17.25V15zm2.25-2.25h.008v.008H19.5v-.008z" />
-            </svg>
-            Tampilkan QR Code
-          </button>
-        )}
-
         <button
           onClick={() => navigate('/user/dashboard')}
           className="w-full py-3 px-4 rounded-xl bg-white border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition cursor-pointer text-center"

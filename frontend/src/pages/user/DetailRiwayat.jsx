@@ -1,28 +1,50 @@
 import React, { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { ticketApi } from '../../api/ticketApi'
 import { toast } from 'react-hot-toast'
 import { QRCodeSVG } from 'qrcode.react'
 import useAuth from '../../hooks/useAuth'
 import '../../style/DashboardUser.css'
 
 export default function DetailRiwayat() {
+  const { id: ticketId } = useParams() // mengambil query untuk fetch data berdasarkan id nya
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const purchase = location.state?.purchase
+
+  const { data: ticketsData, isLoading } = useQuery({
+    queryKey: ['my-tickets-list'],
+    queryFn: async () => {
+      // consume API untuk mengambil data tiket yang dibeli user
+      const res = await ticketApi.getMyTickets()
+      if (res?.success && Array.isArray(res?.data)) {
+        return res.data
+      }
+      return []
+    },
+    enabled: !location.state?.purchase && !!ticketId
+  })
+
+  const purchase = location.state?.purchase || (Array.isArray(ticketsData) && ticketsData.find(t => t.id === ticketId))
   const event = purchase?.event
 
   const [showQR, setShowQR] = useState(false)
   const [currentTicketIndex, setCurrentTicketIndex] = useState(0)
 
+  // handler tiket sebelumnya
   const handlePrevTicket = () => {
+    if (!purchase) return
     setCurrentTicketIndex(prev => (prev === 0 ? purchase.quantity - 1 : prev - 1))
   }
 
+  // handler tiket setelahnya
   const handleNextTicket = () => {
+    if (!purchase) return
     setCurrentTicketIndex(prev => (prev === purchase.quantity - 1 ? 0 : prev + 1))
   }
 
+  // getAttendeeName untuk mengambil nama pengunjung
   const getAttendeeName = (index) => {
     if (!purchase) return ''
     const storedNames = JSON.parse(localStorage.getItem(`ticket_holders_${purchase.id}`)) || []
@@ -31,13 +53,13 @@ export default function DetailRiwayat() {
     return `Pengunjung ${index + 1}`
   }
 
-  // Redirect ke riwayat pembelian jika data tidak ditemukan
+  // Redirect ke riwayat pembelian jika data tidak ditemukan setelah selesai loading
   React.useEffect(() => {
-    if (!purchase || !event) {
+    if (!isLoading && (!purchase || !event)) {
       toast.error('Data transaksi tidak ditemukan')
       navigate('/user/riwayatPembelian')
     }
-  }, [purchase, event, navigate])
+  }, [isLoading, purchase, event, navigate])
 
   const formatRupiah = (n) => {
     return new Intl.NumberFormat('id-ID', {
@@ -65,6 +87,14 @@ export default function DetailRiwayat() {
     })
   }
 
+  if (isLoading && !purchase) {
+    return (
+      <div className="max-w-md mx-auto my-12 p-8 text-center bg-white rounded-3xl shadow-lg border border-gray-100 animate-pulse">
+        <div className="w-12 h-12 border-4 border-indigo-600/30 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-500 text-sm">Memuat detail riwayat...</p>
+      </div>
+    )
+  }
 
   if (!purchase || !event) return null
 
@@ -272,6 +302,7 @@ export default function DetailRiwayat() {
                   {/* isi QR code yang akan dicetak */}
                   <div className="flex flex-col items-center flex-1">
                     <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-md flex items-center justify-center">
+                      {/* isi dari QR code nya */}
                       <QRCodeSVG                   
                           // Menampilkan id - nama - status
                         value={`${purchase.id}-ticket-${currentTicketIndex + 1}-${getAttendeeName(currentTicketIndex)}-${purchase.status}`} 
