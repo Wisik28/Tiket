@@ -115,12 +115,12 @@ class EventService
         }
 
         // Validasi tipe data
-        if (!is_numeric($data['price']) || $data['price'] < 0) {
-            throw new \InvalidArgumentException('Price must be a non-negative number.', 400);
+        if (!is_numeric($data['price']) || $data['price'] < 30000) {
+            throw new \InvalidArgumentException('Price must be at least 30000.', 400);
         }
 
-        if (!is_numeric($data['quota']) || (int) $data['quota'] < 1) {
-            throw new \InvalidArgumentException('Quota must be a positive integer.', 400);
+        if (!is_numeric($data['quota']) || (int) $data['quota'] < 1 || (int) $data['quota'] > 10000) {
+            throw new \InvalidArgumentException('Quota must be between 1 and 10000.', 400);
         }
 
         // Tambahkan publisher_id dari JWT
@@ -148,13 +148,13 @@ class EventService
         }
 
         // Validasi tipe data jika dikirim
-        if (isset($data['price']) && (!is_numeric($data['price']) || $data['price'] < 0)) {
-            throw new \InvalidArgumentException('Price must be a non-negative number.', 400);
+        if (isset($data['price']) && (!is_numeric($data['price']) || $data['price'] < 30000)) {
+            throw new \InvalidArgumentException('Price must be at least 30000.', 400);
         }
 
         if (isset($data['quota'])) {
-            if (!is_numeric($data['quota']) || (int) $data['quota'] < 1) {
-                throw new \InvalidArgumentException('Quota must be a positive integer.', 400);
+            if (!is_numeric($data['quota']) || (int) $data['quota'] < 1 || (int) $data['quota'] > 10000) {
+                throw new \InvalidArgumentException('Quota must be between 1 and 10000.', 400);
             }
             $newCapacity = (int) $data['quota'];
             $data['capacity'] = $newCapacity;
