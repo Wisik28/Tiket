@@ -173,8 +173,8 @@ export default function CreateEvent() {
     category: z.string().min(1, 'Kategori wajib dipilih.'),
     date: z.string().min(1, 'Tanggal & waktu wajib diisi.'),
     location: z.string().min(3, 'Lokasi / venue wajib diisi.'),
-    price: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 0, { message: 'Harga tiket tidak valid.' }),
-    capacity: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 1, { message: 'Kapasitas minimal 1.' }),
+    price: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 30000, { message: 'Harga tiket minimal Rp 30.000.' }),
+    capacity: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 1 && Number(v) <= 10000, { message: 'Kapasitas antara 1 - 10000.' }),
   })
 
   // Validasi form dengan Zod safeParse
@@ -356,8 +356,8 @@ export default function CreateEvent() {
                   id="f-price"
                   className="pd-field__input pd-field__input--prefix"
                   type="number"
-                  min="0"
-                  placeholder="0"
+                  min="30000"
+                  placeholder="30000"
                   value={form.price}
                   onChange={e => setField('price', e.target.value)}
                 />
@@ -372,6 +372,7 @@ export default function CreateEvent() {
                 className="pd-field__input"
                 type="number"
                 min="1"
+                max="10000"
                 placeholder="Contoh: 5000"
                 value={form.capacity}
                 onChange={e => setField('capacity', e.target.value)}
