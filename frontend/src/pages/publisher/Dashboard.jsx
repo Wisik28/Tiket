@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { eventApi } from '../../api/eventApi'
@@ -191,6 +192,19 @@ export default function PublisherDashboard() {
   const debouncedSearch = useDebounce(search, 500) // Setting timer debounce
   const [filterCat, setFilterCat] = useState('All')
   const [deleteTarget, setDeleteTarget] = useState(null)
+
+  // Kunci scroll halaman dan container utama saat modal konfirmasi hapus muncul
+  useEffect(() => {
+    const scrollContainers = document.querySelectorAll('main, body, html')
+    if (deleteTarget) {
+      scrollContainers.forEach(el => el.style.overflow = 'hidden')
+    } else {
+      scrollContainers.forEach(el => el.style.overflow = '')
+    }
+    return () => {
+      scrollContainers.forEach(el => el.style.overflow = '')
+    }
+  }, [deleteTarget])
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['pub-events'],
@@ -465,12 +479,16 @@ export default function PublisherDashboard() {
 
 
       {/* Konfirmasi ketika publisher ingin menghapus event */}
-      {deleteTarget && (
-        <div className="pd-overlay">
+      {deleteTarget && createPortal(
+        <div
+          className="pd-overlay"
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+        >
           <div className="pd-modal pd-modal--sm" role="dialog">
             <div className="pd-confirm">
               <div className="pd-confirm__icon">
-                <AlertIcon />
+                <img src="/assets/delete.png"/>
               </div>
               <h3 className="pd-confirm__title">Hapus Event?</h3>
               <p className="pd-confirm__msg">
@@ -479,6 +497,7 @@ export default function PublisherDashboard() {
               </p>
               <div className="pd-confirm__actions">
                 <button
+                  type="button"
                   className="pd-btn pd-btn--ghost"
                   onClick={() => setDeleteTarget(null)}
                   id="btn-cancel-delete"
@@ -486,6 +505,7 @@ export default function PublisherDashboard() {
                   Batal
                 </button>
                 <button
+                  type="button"
                   className="pd-btn pd-btn--danger"
                   onClick={() => deleteMutation.mutate(deleteTarget.id)}
                   disabled={deleteMutation.isPending}
@@ -499,7 +519,8 @@ export default function PublisherDashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

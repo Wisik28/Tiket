@@ -126,20 +126,20 @@ export default function Pembayaran() {
     <div className="max-w-md mx-auto my-8 px-4">
       {/* Card untuk alert: batas waktu dan gagal */}
       {ticket.status === 'pending' && (
-        <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
+        <div className="bg-green-100 border border-green-100 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-red-100 rounded-xl text-red-600 animate-pulse">
+            <div className="p-2.5 bg-yellow-100 rounded-xl text-black-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
             </div>
             <div>
-              <p className="text-xs text-red-500 font-medium">Batas Waktu Pembayaran</p>
-              <p className="text-sm font-bold text-red-700">Bayar dalam 10 menit</p>
+              <p className="text-xs text-yellow-600 font-medium">Batas Waktu Pembayaran</p>
+              <p className="text-sm font-bold text-yellow-600">Bayar dalam 10 menit</p>
             </div>
           </div>
           <div className="text-right">
-            <span className={`px-3 py-1.5 rounded-xl font-mono text-base font-bold bg-white text-red-600 border border-red-200/50 shadow-sm ${timeLeft === 'EXPIRED' ? 'text-gray-400 border-gray-200' : ''}`}>
+            <span className={`px-3 py-1.5 rounded-xl font-mono text-base font-bold bg-white text-yellow-500 border border-red-200/50 shadow-sm ${timeLeft === 'EXPIRED' ? 'text-gray-400 border-gray-200' : ''}`}>
               {timeLeft}
             </span>
           </div>
@@ -230,10 +230,10 @@ export default function Pembayaran() {
       {/* Button back ke dashboard */}
       <div className="space-y-3">
         <button
-          onClick={() => navigate('/user/dashboard')}
+          onClick={() => navigate('/user/riwayatPembelian')}
           className="w-full py-3 px-4 rounded-xl bg-white border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition cursor-pointer text-center"
         >
-          Kembali ke Dashboard
+          Kembali
         </button>
       </div>
     </div>
