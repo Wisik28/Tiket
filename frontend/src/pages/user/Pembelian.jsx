@@ -217,10 +217,10 @@ const additionalHolderSchema = z.object({
 
   return (
     <div className="pd-create-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
-      <header className="pd-create-header" style={{ marginBottom: '24px' }}>
+      {/* <header className="pd-create-header" style={{ marginBottom: '24px' }}>
         <h1 className="text-2xl font-bold text-gray-900">Form Registrasi Acara</h1>
         <p className="text-sm text-gray-500 mt-1">Lengkapi seluruh data di bawah ini.</p>
-      </header>
+      </header> */}
 
       {/* Ringkasan detail event */}
       {event && (

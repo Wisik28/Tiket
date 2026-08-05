@@ -181,7 +181,8 @@ export default function UserDashboard() {
     [eventsData]
   )
 
-  // IntersectionObserver: auto-fetch halaman berikutnya saat scroll ke bawah
+  // auto-fetch halaman berikutnya saat scroll ke bawah
+  // IntersectionObserver infinit pagination
   useEffect(() => {
     const el = bottomRef.current
     if (!el) return
@@ -197,22 +198,31 @@ export default function UserDashboard() {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // Filter untuk debounce dan menghilangkan event expired dari tampilan
-  // Ketika user melakukan search maka event expired akan tampil
+  // Filter untuk debounce dan menghilangkan event expired & sold out dari tampilan
+  // Ketika user melakukan search (debounce) maka event expired & sold out akan tampil
   const filtered = useMemo(() => events.filter(e => {
     const q = debouncedSearch.trim().toLowerCase()
+
     const matchQ = !q || e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
     const matchC = filterCat === 'All' || e.category === filterCat
 
+    // EXPIRED
     // mengecek apakah event expired dengan memanggil flag is_expired dari service backend
     const today = new Date().toISOString().split('T')[0]
     const isExpired = e.is_expired !== undefined
       ? e.is_expired
       : (e.date ? e.date.substring(0, 10) < today : false)
 
-    // Jika user tidak melakukan pencarian di search bar (!q), sembunyikan event yang sudah expired
-    // Jika debounce digunakan (user melakukan pencarian) maka program menampilkan event yang sudah expired
-    if (!q && isExpired) {
+    // SOLD OUT 
+    // mengecek apakah event sold out (tiket habis terjual)
+    const sold = Number(e.sold || 0)
+    const cap = Number(e.capacity || 0)
+    const quota = Number(e.quota ?? 0)
+    const isSoldOut = (cap > 0 && sold >= cap) || (e.quota !== undefined && quota <= 0)
+
+    // Jika user tidak melakukan pencarian di search bar (!q), sembunyikan event yang sudah expired atau sold out
+    // Jika debounce digunakan (user melakukan pencarian) maka program menampilkan event yang sudah expired / sold out
+    if (!q && (isExpired || isSoldOut)) {
       return false
     }
 
@@ -222,22 +232,22 @@ export default function UserDashboard() {
 
   // Page utama HTML
   return (
-    <div className="pd">    
+    <div className="pd">
 
       {/* Toolbar filter dan search bar */}
       <div className="pd-toolbar">
         <div className="pd-search">
           <span className="pd-search__icon">
             <img src="/assets/search.png" alt="Search" />
-          </span>          
-          <input          
+          </span>
+          <input
             id="event-search"
             type="text"
             className="pd-search__input"
             placeholder="Cari nama event atau lokasi…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-          />                    
+          />
         </div>
 
         <div className="pd-filters">
@@ -270,7 +280,7 @@ export default function UserDashboard() {
             {search || filterCat !== 'All'
               ? 'Silahkan ubah filter pencarian Anda'
               : ''}
-          </p>          
+          </p>
         </div>
       ) : (
         <div className="pd-event-grid">
@@ -278,8 +288,7 @@ export default function UserDashboard() {
             const sold = Number(event.sold || 0)
             const cap = Number(event.capacity || event.quota || 0)
             const pct = cap > 0 ? Math.min((sold / cap) * 100, 100) : 0
-            const isFull = cap > 0 && sold >= cap
-            const isHot = pct >= 75 && !isFull
+            const isFull = (cap > 0 && sold >= cap) || (event.quota !== undefined && Number(event.quota) <= 0)            
             const catClr = CAT_COLORS[event.category] || '#64748b'
 
             // Mengambil tanggal hari ini
@@ -300,8 +309,8 @@ export default function UserDashboard() {
                   />
                   <div className="pd-card__banner-overlay" />
 
-                  {/* Setting background agar blur ketika event expired */}
-                  {isExpired && (
+                  {/* Setting background agar blur ketika event expired atau sold out */}
+                  {(isExpired || isFull) && (
                     <div style={{
                       position: 'absolute',
                       inset: 0,
@@ -311,7 +320,7 @@ export default function UserDashboard() {
                       justifyContent: 'center',
                       backgroundColor: 'rgba(0, 0, 0, 0.45)',
                       backdropFilter: 'blur(1px)'
-                    }}/>
+                    }} />
                   )}
 
                   {/* Top row badges */}
@@ -319,16 +328,6 @@ export default function UserDashboard() {
                     <span className="pd-badge pd-badge--cat" style={{ '--cat-clr': catClr }}>
                       {CAT_EMOJI[event.category]} {event.category}
                     </span>
-                    <div className="pd-card__top-right">
-                      {isExpired ? (
-                        <span className="pd-badge pd-badge--full" style={{ backgroundColor: 'rgba(220, 38, 38, 0.9)', color: '#fff' }}>EXPIRED</span>
-                      ) : (
-                        <>
-                          {isFull && <span className="pd-badge pd-badge--full">SOLD OUT</span>}
-                          {isHot && <span className="pd-badge pd-badge--hot">HOT</span>}
-                        </>
-                      )}
-                    </div>
                   </div>
                   {/* Title overlay */}
                   <div className="pd-card__banner-footer">
@@ -351,7 +350,7 @@ export default function UserDashboard() {
                     </div>
                   </div>
 
-                  {/* Price + Capacity row */}
+                  {/* harga dan kapasitas */}
                   <div className="pd-card__kpiuser-row">
                     <div className="pd-card__kpiuser">
                       <span className="pd-card__kpiuser-lbl">Harga Tiket</span>
@@ -362,8 +361,8 @@ export default function UserDashboard() {
                       <span className="pd-card__kpiuser-val">{Number(event.quota).toLocaleString('id-ID')}</span>
                     </div>
                   </div>
-                  
-                  {/* setting tombol jika event kadaluarsa */}
+
+                  {/* setting tombol jika event kadaluarsa atau sold out */}
                   {isExpired ? (
                     <button
                       type="button"
@@ -380,7 +379,7 @@ export default function UserDashboard() {
                       Event Kadaluarsa
                     </button>
 
-                  // setting tombol jika event sudah penuh
+                    // setting tombol jika event sudah penuh
                   ) : isFull ? (
                     <button
                       type="button"
@@ -396,11 +395,11 @@ export default function UserDashboard() {
                     >
                       Event Habis
                     </button>
-                  // Jika event belum kadaluarsa dan belum penuh maka tampilkan tombol beli tiket
-                  // kemudian direct ke pembelian
+                    // Jika event belum kadaluarsa dan belum penuh maka tampilkan tombol beli tiket
+                    // kemudian direct ke pembelian
                   ) : (
                     <Link
-                      to={`/user/pembelian/${event.id}`}                      
+                      to={`/user/pembelian/${event.id}`}
                       state={{ event }}
                       className="pd-purchase-btn-centered"
                       title="Beli Tiket"
