@@ -108,4 +108,83 @@ class AuthService
             'user' => $user
         ];
     }
+/**
+     * Buat Oauth
+     */
+    public function googleLogin(array $data)
+    {
+        if (empty($data['credential'])) {
+            throw new \InvalidArgumentException('Google credential token is required.', 400);
+        }
+
+        $config = require __DIR__ . '/../../config/app.php';
+        $googleClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? 'your_google_client_id';
+
+        $client = new \Google_Client(['client_id' => $googleClientId]);
+        $payload = $client->verifyIdToken($data['credential']);
+
+        if (!$payload) {
+            throw new \RuntimeException('Invalid Google credential.', 401);
+        }
+
+        $googleId = $payload['sub'];
+        $email = $payload['email'];
+        $name = $payload['name'];
+        $avatarUrl = $payload['picture'] ?? null;
+
+        $user = User::findByEmail($email);
+        
+        if (!$user) {
+            $newUserData = [
+                'name' => $name,
+                'email' => $email,
+                'role' => 'user',
+                'google_id' => $googleId,
+                'avatar_url' => $avatarUrl
+            ];
+            $user = User::create($newUserData);
+        } else {
+            if ($user['role'] !== 'user') {
+                throw new \RuntimeException('OAuth login is only allowed for regular users.', 403);
+            }
+            if (!isset($user['google_id'])) {
+                User::updateProfile((string)$user['_id'], ['google_id' => $googleId, 'avatar_url' => $avatarUrl]);
+                $user['google_id'] = $googleId;
+                $user['avatar_url'] = $avatarUrl;
+            }
+        }
+
+        $jwtSecret = $config['jwt']['secret'];
+        $jwtExpire = $config['jwt']['expire'];
+
+        $issuedAt = time();
+        $expire = $issuedAt + $jwtExpire;
+
+        $jwtPayload = [
+            'iss' => $config['url'],
+            'aud' => $config['url'],
+            'iat' => $issuedAt,
+            'exp' => $expire,
+            'sub' => (string)$user['_id'],
+            'role' => $user['role']
+        ];
+
+        $token = JWT::encode($jwtPayload, $jwtSecret, 'HS256');
+
+        unset($user['password']);
+        $user['id'] = (string)$user['_id'];
+        unset($user['_id']);
+
+        if (isset($user['createdAt']) && $user['createdAt'] instanceof \MongoDB\BSON\UTCDateTime) {
+            $user['createdAt'] = $user['createdAt']->toDateTime()->format(\DateTime::ATOM);
+        }
+        if (isset($user['updatedAt']) && $user['updatedAt'] instanceof \MongoDB\BSON\UTCDateTime) {
+            $user['updatedAt'] = $user['updatedAt']->toDateTime()->format(\DateTime::ATOM);
+        }
+
+        return [
+            'token' => $token,
+            'user' => $user
+        ];
+    }
 }

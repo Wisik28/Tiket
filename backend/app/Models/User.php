@@ -14,6 +14,14 @@ class User
         $collection = self::getCollection();
         return $collection->findOne(['email' => $email]);
     }
+/**
+     * Buat Oaut
+     */
+    public static function findByGoogleId(string $googleId)
+    {
+        $collection = self::getCollection();
+        return $collection->findOne(['google_id' => $googleId]);
+    }
 
     public static function findById(string $id)
     {
@@ -34,10 +42,12 @@ class User
             'tglLahir' => $data['tglLahir'] ?? null,
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => password_hash($data['password'], PASSWORD_BCRYPT),
+            'password' => isset($data['password']) ? password_hash($data['password'], PASSWORD_BCRYPT) : null,
             'role' => $data['role'], // "publisher" or "user"
             'address' => $data['address'] ?? null,            
             'mobile' => $data['mobile'] ?? null,
+            'google_id' => $data['google_id'] ?? null,
+            'avatar_url' => $data['avatar_url'] ?? null,
             'createdAt' => new \MongoDB\BSON\UTCDateTime(),
             'updatedAt' => new \MongoDB\BSON\UTCDateTime(),
         ];
@@ -57,7 +67,7 @@ class User
         $collection = self::getCollection();
         
         $setFields = [];
-        $allowedFields = ['name', 'tglLahir', 'nik', 'address', 'mobile', 'company_name'];
+        $allowedFields = ['name', 'tglLahir', 'nik', 'address', 'mobile', 'company_name', 'google_id', 'avatar_url'];
         
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {

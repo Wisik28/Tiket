@@ -100,19 +100,30 @@ class TicketService
         // Jika user tidak membayar lebih dari 10 menit maka status akan berubah menjadi failed (gagal)
         $collection = Ticket::getCollection();
         $tenMinutesAgo = new \MongoDB\BSON\UTCDateTime((time() - 600) * 1000);
-        $collection->updateMany(
-            [
-                'user_id' => new \MongoDB\BSON\ObjectId($userId),
-                'status' => 'pending',
-                'createdAt' => ['$lt' => $tenMinutesAgo]
-            ],
-            [
-                '$set' => [
-                    'status' => 'failed',
-                    'updatedAt' => new \MongoDB\BSON\UTCDateTime()
+        
+        // Cari tiket yang kedaluwarsa
+        $expiredTickets = $collection->find([
+            'user_id' => new \MongoDB\BSON\ObjectId($userId),
+            'status' => 'pending',
+            'createdAt' => ['$lt' => $tenMinutesAgo]
+        ])->toArray();
+
+        // Update status menjadi failed dan kembalikan kuota event
+        foreach ($expiredTickets as $expiredTicket) {
+            $result = $collection->updateOne(
+                ['_id' => $expiredTicket['_id'], 'status' => 'pending'],
+                [
+                    '$set' => [
+                        'status' => 'failed',
+                        'updatedAt' => new \MongoDB\BSON\UTCDateTime()
+                    ]
                 ]
-            ]
-        );
+            );
+
+            if ($result->getModifiedCount() > 0) {
+                Event::incrementQuota((string)$expiredTicket['event_id'], $expiredTicket['quantity']);
+            }
+        }
 
         $skip = ($page - 1) * $limit;
         $tickets = Ticket::findAllByUser($userId, $isSearch, $skip, $limit);
@@ -132,12 +143,22 @@ class TicketService
                     if (in_array($txStatus, ['settlement', 'capture'])) {
                         $status = ($fraudStatus === '' || $fraudStatus === 'accept') ? 'paid' : 'failed';
                         Ticket::updateStatusByOrderId($ticketArray['payment_id'], $status);
+                        
+                        if ($status === 'failed' && $ticketArray['status'] === 'pending') {
+                            Event::incrementQuota((string)$ticketArray['event_id'], $ticketArray['quantity']);
+                        }
+                        
                         $ticket['status'] = $status;
                         $updatedAny = true;
                     } elseif (in_array($txStatus, ['deny', 'cancel', 'expire', 'failure'])) {
-                        Ticket::updateStatusByOrderId($ticketArray['payment_id'], 'failed');
-                        $ticket['status'] = 'failed';
-                        $updatedAny = true;
+                        if ($ticketArray['status'] === 'pending') {
+                            $updated = Ticket::updateStatusByOrderId($ticketArray['payment_id'], 'failed');
+                            if ($updated) {
+                                Event::incrementQuota((string)$ticketArray['event_id'], $ticketArray['quantity']);
+                            }
+                            $ticket['status'] = 'failed';
+                            $updatedAny = true;
+                        }
                     }
                 } catch (\Exception $e) {
                     // Abaikan jika error (misal belum di-charge ke midtrans atau masalah jaringan)
@@ -259,6 +280,12 @@ class TicketService
             throw new \RuntimeException('Invalid signature.', 403);
         }
 
+        // Cari tiket berdasarkan order_id
+        $ticket = Ticket::findByOrderId($orderId);
+        if (!$ticket) {
+            return false;
+        }
+
         // Tentukan status tiket berdasarkan status transaksi Midtrans
         if (in_array($txStatus, ['settlement', 'capture'])) {
             $status = ($fraudStatus === '' || $fraudStatus === 'accept') ? 'paid' : 'failed';
@@ -268,7 +295,15 @@ class TicketService
             $status = 'pending';
         }
 
-        return Ticket::updateStatusByOrderId($orderId, $status);
+        $oldStatus = $ticket['status'] ?? 'pending';
+        $updated = Ticket::updateStatusByOrderId($orderId, $status);
+
+        // Jika status berubah dari pending ke failed, kembalikan kuota event
+        if ($updated && $oldStatus === 'pending' && $status === 'failed') {
+            Event::incrementQuota((string)$ticket['event_id'], (int)$ticket['quantity']);
+        }
+
+        return $updated;
     }
 
     /**
