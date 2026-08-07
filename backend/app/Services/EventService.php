@@ -21,9 +21,11 @@ class EventService
             unset($data['_id']);
         }
 
-        // Konversi publisher_id ke string
+        // Konversi publisher_id ke string dan dapatkan nama penyelenggara
         if (isset($data['publisher_id'])) {
             $data['publisher_id'] = (string) $data['publisher_id'];
+            $pubUser = \App\Models\User::findById($data['publisher_id']);
+            $data['publisher_name'] = $pubUser ? ($pubUser['company_name'] ?? $pubUser['name'] ?? 'Penyelenggara') : 'Penyelenggara';
         }
 
         // Konversi UTCDateTime ke ISO8601

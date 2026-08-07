@@ -43,6 +43,13 @@ const MapPinIcon = () => (
   </svg>
 )
 
+const BriefcaseIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+  </svg>
+)
+
 const TicketIcon = () => (
   <svg viewBox='0 0 24 24' fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M2 9a3 3 0 0 1 0 12v1a2 2 0 0 0-2-2V10a2 2 0 0 0 2-2zm12-6H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z" /><polyline points="7 10 9 12 17 4" />
@@ -176,6 +183,8 @@ export default function UserDashboard() {
     staleTime: 30000,
   })
 
+  // inisialisasi variabel events untuk menampilkan detail atribut dari objek event
+  // ini sudah mencakup nama publisher juga
   const events = useMemo(
     () => eventsData?.pages.flatMap((page) => page.data ?? []) ?? [],
     [eventsData]
@@ -339,6 +348,7 @@ export default function UserDashboard() {
                 <div className="pd-card__body">
                   <p className="pd-card__desc">{event.description || '—'}</p>
 
+                  {/* Bagian tanggal dan waktu */}
                   <div className="pd-card__metas">
                     <div className="pd-card__meta">
                       <span className="pd-card__meta-icon pd-card__meta-icon--indigo"><CalendarIcon /></span>
@@ -347,6 +357,10 @@ export default function UserDashboard() {
                     <div className="pd-card__meta">
                       <span className="pd-card__meta-icon pd-card__meta-icon--rose"><MapPinIcon /></span>
                       <span className="pd-card__meta-loc">{event.location}</span>
+                    </div>
+                    <div className="pd-card__meta">
+                      <span className="pd-card__meta-icon pd-card__meta-icon--indigo"><BriefcaseIcon /></span>
+                      <span className="pd-card__meta-loc">{event.publisher_name}</span>
                     </div>
                   </div>
 
