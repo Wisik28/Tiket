@@ -140,6 +140,7 @@ class AuthService
 
         $user = User::findByEmail($email);
         
+        // validasi untuk login sebagai user atau publisher menggunakan OAuth
         if (!$user) {
             $newUserData = [
                 'name' => $name,
@@ -149,17 +150,14 @@ class AuthService
                 'avatar_url' => $avatarUrl
             ];
             $user = User::create($newUserData);
-        } else {
-            if ($user['role'] !== 'user') {
-                throw new \RuntimeException('OAuth login is only allowed for regular users.', 403);
-            }
+        } else {                        
             if (!isset($user['google_id'])) {
                 User::updateProfile((string)$user['_id'], ['google_id' => $googleId, 'avatar_url' => $avatarUrl]);
                 $user['google_id'] = $googleId;
                 $user['avatar_url'] = $avatarUrl;
             }
         }
-
+        
         $jwtSecret = $config['jwt']['secret'];
         $jwtExpire = $config['jwt']['expire'];
 

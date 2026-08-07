@@ -39,7 +39,11 @@ export default function Pembelian() {
     enabled: !!eventId
   })
 
+  // inisialisasi variabel event untuk atribut milik objek event
   const event = location.state?.event || eventData
+
+  // inisialisasi variabel publisherName untuk atribut milik objek publisher
+  const publisherName = location.state?.publisher?.name || event?.publisher_name || 'Penyelenggara'
 
 //   function untuk memproses pembayaran, navigate ke page riwayat pembelian ketika payment sukses
   const purchaseMutation = useMutation({
@@ -216,12 +220,7 @@ const additionalHolderSchema = z.object({
   const isSaving = purchaseMutation.isPending 
 
   return (
-    <div className="pd-create-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* <header className="pd-create-header" style={{ marginBottom: '24px' }}>
-        <h1 className="text-2xl font-bold text-gray-900">Form Registrasi Acara</h1>
-        <p className="text-sm text-gray-500 mt-1">Lengkapi seluruh data di bawah ini.</p>
-      </header> */}
-
+    <div className="pd-create-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>      
       {/* Ringkasan detail event */}
       {event && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
@@ -267,6 +266,20 @@ const additionalHolderSchema = z.object({
               <div>
                 <p className="text-xxs text-gray-400 font-bold uppercase tracking-wider">Lokasi / Venue</p>
                 <p className="text-sm font-semibold text-gray-800 mt-0.5" title={event.location}>{event.location}</p>
+              </div>
+            </div>
+
+            {/* nama institusi publisher */}
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xxs text-gray-400 font-bold uppercase tracking-wider">Penyelenggara</p>
+                <p className="text-sm font-semibold text-gray-800 mt-0.5" title={publisherName}>{publisherName}</p>
               </div>
             </div>
 
