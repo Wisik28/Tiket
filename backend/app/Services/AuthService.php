@@ -118,10 +118,16 @@ class AuthService
         }
 
         $config = require __DIR__ . '/../../config/app.php';
-        $googleClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? 'your_google_client_id';
+        $googleClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?? ''; // ambil google id dari .env
 
-        $client = new \Google_Client(['client_id' => $googleClientId]);
-        $payload = $client->verifyIdToken($data['credential']);
+        if (empty($googleClientId)) {
+            throw new \RuntimeException('GOOGLE_CLIENT_ID belum dikonfigurasi di server.', 500);
+        }
+
+        // Verifikasi Google ID Token tanpa library google/apiclient
+        // Menggunakan Google OAuth2 tokeninfo endpoint
+        $credential = $data['credential'];
+        $payload = $this->verifyGoogleIdToken($credential, $googleClientId);
 
         if (!$payload) {
             throw new \RuntimeException('Invalid Google credential.', 401);
@@ -186,5 +192,64 @@ class AuthService
             'token' => $token,
             'user' => $user
         ];
+    }
+
+    /**
+     * Verifikasi Google ID Token menggunakan Google OAuth2 tokeninfo endpoint.
+     * Tidak memerlukan library google/apiclient.
+     * 
+     * @param string $idToken Google ID token (JWT) dari frontend
+     * @param string $clientId Google Client ID untuk validasi audience
+     * @return array|null Payload token jika valid, null jika tidak valid
+     */
+    private function verifyGoogleIdToken(string $idToken, string $clientId): ?array
+    {
+        // Gunakan Google tokeninfo endpoint untuk verifikasi
+        $url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($idToken);
+        
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_TIMEOUT => 10,
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        if ($curlError) {
+            throw new \RuntimeException('Gagal menghubungi server Google: ' . $curlError, 500);
+        }
+        
+        if ($httpCode !== 200) {
+            return null;
+        }
+        
+        $payload = json_decode($response, true);
+        
+        if (!$payload || json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+        
+        // Validasi audience (aud) harus sesuai dengan Client ID kita
+        if (!isset($payload['aud']) || $payload['aud'] !== $clientId) {
+            return null;
+        }
+        
+        // Validasi issuer
+        $validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+        if (!isset($payload['iss']) || !in_array($payload['iss'], $validIssuers)) {
+            return null;
+        }
+        
+        // Validasi token belum expired
+        if (isset($payload['exp']) && (int)$payload['exp'] < time()) {
+            return null;
+        }
+        
+        return $payload;
     }
 }
