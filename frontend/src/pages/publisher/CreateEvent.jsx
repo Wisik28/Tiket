@@ -171,10 +171,13 @@ export default function CreateEvent() {
   const createEventSchema = z.object({
     title: z.string().min(3, 'Nama event wajib diisi (minimal 3 karakter).'),
     category: z.string().min(1, 'Kategori wajib dipilih.'),
-    date: z.string().min(1, 'Tanggal & waktu wajib diisi.'),
+    date: z.string().min(1, 'Tanggal & waktu wajib diisi.').refine((v) => {
+      if (!v) return false
+      return v >= getTodayDateTime()
+    }, { message: 'Tanggal & waktu tidak valid.' }),
     location: z.string().min(3, 'Lokasi / venue wajib diisi.'),
-    price: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 0, { message: 'Harga tiket tidak valid.' }),
-    capacity: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 1, { message: 'Kapasitas minimal 1.' }),
+    price: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 30000, { message: 'Harga tiket minimal Rp 30.000.' }),
+    capacity: z.union([z.number(), z.string()]).refine((v) => v !== '' && Number(v) >= 1 && Number(v) <= 10000, { message: 'Kapasitas antara 1 - 10000.' }),
   })
 
   // Validasi form dengan Zod safeParse
@@ -240,15 +243,40 @@ export default function CreateEvent() {
       setField('imagePreview', URL.createObjectURL(file))
     }
   }
+
+  // Function handler untuk batalkan/hapus gambar preview
+  const handleRemoveImage = (e) => {
+    e.stopPropagation()
+    setForm(p => ({ ...p, imageFile: null, imagePreview: '' }))
+    const input = document.getElementById('f-image-upload')
+    if (input) input.value = ''
+  }
   const isSaving = createMutation.isPending
 
-  return (    
-    <div className="pd-create-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
-      <header className="pd-create-header" style={{ marginBottom: '24px' }}>
-        <h1 className="text-2xl font-bold text-gray-900">Tambah Event Baru</h1>
-        <p className="text-sm text-gray-500 mt-1">Isi seluruh informasi event dan kapasitas tiket untuk mulai menjual.</p>
-      </header>
+  // HANDLER DRAG AND DROP
+  const [isDragging, setIsDragging] = useState(false)
 
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    setIsDragging(true)    
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    setIsDragging(false)    
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+  
+    const files = e.dataTransfer.files
+    if (files && files.length > 0)
+      handleImageUpload({target: {files: files}})
+  }
+
+  return (    
+    <div className="pd-create-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>      
       <form className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" onSubmit={handleSubmit} noValidate>
         {/* Section: Info Dasar */}
         <section className="pd-form-section">
@@ -293,7 +321,17 @@ export default function CreateEvent() {
                 type="datetime-local"
                 value={form.date}
                 min={getTodayDateTime()}
-                onChange={e => setField('date', e.target.value)}
+                onChange={e => {
+                  const val = e.target.value
+                  const minDate = getTodayDateTime()
+                  // cek agar input manual valid sesuai dengan format yang ditentukan
+                  if (val && val < minDate) {
+                    setFormErrors(prev => ({ ...prev, date: 'Tanggal & waktu tidak valid.' }))
+                  } else {
+                    setFormErrors(prev => ({ ...prev, date: undefined }))
+                  }
+                  setField('date', val)
+                }}
               />
               {formErrors.date && <p className="pd-field__err">{formErrors.date}</p>}
             </div>
@@ -356,8 +394,8 @@ export default function CreateEvent() {
                   id="f-price"
                   className="pd-field__input pd-field__input--prefix"
                   type="number"
-                  min="0"
-                  placeholder="0"
+                  min="30000"
+                  placeholder="30000"
                   value={form.price}
                   onChange={e => setField('price', e.target.value)}
                 />
@@ -372,6 +410,7 @@ export default function CreateEvent() {
                 className="pd-field__input"
                 type="number"
                 min="1"
+                max="10000"
                 placeholder="Contoh: 5000"
                 value={form.capacity}
                 onChange={e => setField('capacity', e.target.value)}
@@ -382,7 +421,7 @@ export default function CreateEvent() {
         </section>
 
         {/* Section: Gambar */}
-        <section className="pd-form-section">
+       <section className="pd-form-section">
           <h3 className="pd-form-section__title">
             <span className="pd-form-section__num">3</span>
             Gambar Banner <span className="pd-form-section__opt">(opsional)</span>
@@ -390,78 +429,132 @@ export default function CreateEvent() {
           <div className="pd-form-grid">
             <div className="pd-field pd-field--full">
               <label className="pd-field__label">Upload Dokumen</label>
-              {/* Area kotak upload tiruan drag & drop */}
+              
+              {/* Area kotak upload drag & drop / preview */}
               <div
                 onClick={() => document.getElementById('f-image-upload').click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
                 style={{
-                  border: '2px dashed #6366f1',
+                  position: 'relative',
+                  border: `2px dashed ${isDragging ? '#3b82f6' : form.imagePreview ? '#cbd5e1' : '#6366f1'}`,
                   borderRadius: '16px',
-                  padding: '40px 24px',
+                  padding: form.imagePreview ? '12px' : '40px 24px',
                   textAlign: 'center',
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: isDragging ? '#e0e7ff' : '#f8fafc',
                   cursor: 'pointer',
                   marginTop: '8px',
-                  transition: 'background-color 0.2s'
+                  transition: 'all 0.2s ease-in-out',
+                  overflow: 'hidden'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                onMouseOver={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+                onMouseOut={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = '#f8fafc'; }}
               >
-                {/* Ikon Upload */}
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px' }}>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
+                {/* menampilkan icon upload ketika preview tidak tersedia, artinya user belum upload image */}
+                {!form.imagePreview ? (
+                  <>
+                    {/* Ikon Upload */}
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={isDragging ? "#3b82f6" : "#4f46e5"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px' }}>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
 
-                <h4 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '600', color: '#1e293b' }}>
-                  Upload Dokumen
-                </h4>
-                <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
-                  Format: JPG, JPEG, PNG
-                </p>
-                {/* <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
-                  Drag & drop file di sini<br />atau
-                </p>                 */}
-                {/* Tombol palsu untuk visual */}
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: '#3b82f6',
-                  // backgroundImage: 'linear-gradient(to right, #6366f1, #06b6d)',
-                  color: 'white',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
-                  Pilih File dari Komputer
-                </span>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '600', color: '#1e293b' }}>
+                      Upload Dokumen
+                    </h4>
+                    
+                    <p style={{ margin: '0 0 8px', fontSize: '14px', color: '#64748b' }}>
+                      Drag & drop file di sini atau
+                    </p>
+                    
+                    <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
+                      Format: JPG, JPEG, PNG
+                    </p>
+                    
+                    {/* Tombol palsu untuk visual */}
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      pointerEvents: 'none'
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+                      Pilih File dari Komputer
+                    </span>
+                  </>
+                ) : (
+                  /* Preview Image saat file sudah di-attach */
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <img
+                      src={form.imagePreview}
+                      alt="Preview"
+                      style={{
+                        width: '100%',
+                        maxHeight: '300px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                        display: 'block'
+                      }}
+                      onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
+                    />
+                    {/* Tanda silang merah untuk membatalkan image */}
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      title="Batalkan Gambar"
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        backgroundColor: '#ef4444',
+                        color: '#ffffff',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        transition: 'transform 0.15s ease, background-color 0.15s ease',
+                        zIndex: 10
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dc2626'
+                        e.currentTarget.style.transform = 'scale(1.1)'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ef4444'
+                        e.currentTarget.style.transform = 'scale(1)'
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
                 {/* Input file asli yang disembunyikan */}
                 <input
                   id="f-image-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg, image/png, image/jpg"
                   style={{ display: 'none' }}
                   onChange={handleImageUpload}
                 />
               </div>
             </div>
-            {/* Preview Section */}
-            {(form.imagePreview || DEFAULT_IMAGES[form.category]) && (
-              <div className="pd-field pd-field--full">
-                <p className="pd-field__label">Preview</p>
-                <div className="pd-img-preview" style={{ marginTop: '8px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                  <img
-                    src={form.imagePreview || DEFAULT_IMAGES[form.category]}
-                    alt="preview"
-                    style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', display: 'block' }}
-                    onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </section>
 

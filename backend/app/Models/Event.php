@@ -128,15 +128,25 @@ class Event
         return $result->getDeletedCount() > 0;
     }
 
-    /**
-     * Kurangi kuota event saat tiket dibeli
-     */
     public static function decrementQuota(string $id, int $quantity): bool
     {
         $collection = self::getCollection();
         $result = $collection->updateOne(
             ['_id' => new \MongoDB\BSON\ObjectId($id)],
             ['$inc' => ['quota' => -$quantity]]
+        );
+        return $result->getModifiedCount() > 0;
+    }
+
+    /**
+     * Kembalikan kuota event saat tiket dibatalkan atau kedaluwarsa
+     */
+    public static function incrementQuota(string $id, int $quantity): bool
+    {
+        $collection = self::getCollection();
+        $result = $collection->updateOne(
+            ['_id' => new \MongoDB\BSON\ObjectId($id)],
+            ['$inc' => ['quota' => $quantity]]
         );
         return $result->getModifiedCount() > 0;
     }

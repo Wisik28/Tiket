@@ -49,9 +49,6 @@ class Ticket
         return $result->getModifiedCount() > 0;
     }
 
-    /**
-     * Update status tiket berdasarkan order_id (dipanggil dari webhook Midtrans)
-     */
     public static function updateStatusByOrderId(string $orderId, string $status): bool
     {
         $collection = self::getCollection();
@@ -67,6 +64,19 @@ class Ticket
             ['$set' => $updateFields]
         );
         return $result->getModifiedCount() > 0;
+    }
+
+    /**
+     * Cari tiket berdasarkan order_id Midtrans
+     */
+    public static function findByOrderId(string $orderId)
+    {
+        $collection = self::getCollection();
+        try {
+            return $collection->findOne(['payment_id' => $orderId]);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**

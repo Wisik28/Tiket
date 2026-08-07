@@ -913,15 +913,19 @@
 /* ── OVERLAY & MODAL ──────────────────────────────────────────────── */
 .pd-overlay {
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   inset: 0;
-  z-index: 1000;
+  z-index: 9999;
   background: rgba(8, 10, 30, 0.6);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  overflow-y: auto;
+  overflow: hidden;
   animation: pd-fadein .2s ease both;
 }
 
@@ -1253,19 +1257,27 @@
   align-items: center;
   text-align: center;
   padding: 32px 28px 28px;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pd-confirm__icon {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: var(--pd-danger-light);
-  color: var(--pd-danger);
+  background: #fef2f2;
+  border: 2px solid #fecaca;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 4px;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.15);
+}
+
+.pd-confirm__icon img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: invert(21%) sepia(89%) saturate(5438%) hue-rotate(354deg) brightness(91%) contrast(92%);
 }
 
 .pd-confirm__icon svg {
@@ -1289,14 +1301,21 @@
 
 .pd-confirm__actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .pd-confirm__actions .pd-btn {
   flex: 1;
   justify-content: center;
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ── RESPONSIVE ───────────────────────────────────────────────────── */

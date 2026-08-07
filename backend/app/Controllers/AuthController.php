@@ -80,4 +80,40 @@ class AuthController
             ]);
         }
     }
+ /**
+     * Buat Oauth
+     */
+    public function googleLogin()
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+
+        try {
+            $result = $this->authService->googleLogin($input);
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Google Login successful.',
+                'data' => $result
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            http_response_code($e->getCode() ?: 400);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        } catch (\RuntimeException $e) {
+            http_response_code($e->getCode() ?: 401);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Internal Server Error: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

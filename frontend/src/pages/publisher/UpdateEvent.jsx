@@ -225,8 +225,8 @@ export default function CreateEvent() {
     if (!form.title.trim()) e.title = 'Nama event wajib diisi.'
     if (!form.date) e.date = 'Tanggal & waktu wajib diisi.'
     if (!form.location.trim()) e.location = 'Lokasi wajib diisi.'
-    if (!form.price || Number(form.price) < 0) e.price = 'Harga tiket tidak valid.'
-    if (!form.capacity || Number(form.capacity) < 1) e.capacity = 'Kapasitas minimal 1.'
+    if (!form.price || Number(form.price) < 30000) e.price = 'Harga tiket minimal Rp 30.000.'
+    if (!form.capacity || Number(form.capacity) < 1 || Number(form.capacity) > 10000) e.capacity = 'Kapasitas antara 1 - 10000.'
     setFormErrors(e)
     return Object.keys(e).length === 0
   }
@@ -372,8 +372,8 @@ export default function CreateEvent() {
                   id="f-price"
                   className="pd-field__input pd-field__input--prefix"
                   type="number"
-                  min="0"
-                  placeholder="0"
+                  min="30000"
+                  placeholder="30000"
                   value={form.price}
                   onChange={e => setField('price', e.target.value)}
                 />
@@ -388,6 +388,7 @@ export default function CreateEvent() {
                 className="pd-field__input"
                 type="number"
                 min="1"
+                max="10000"
                 placeholder="Contoh: 5000"
                 value={form.capacity}
                 onChange={e => setField('capacity', e.target.value)}
