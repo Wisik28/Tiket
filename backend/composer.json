@@ -10,6 +10,10 @@
     },
     "require": {
         "php": "^8.2",
+<<<<<<< HEAD
+=======
+        "firebase/php-jwt": "^6.10",
+>>>>>>> ac86023 (selesaikan OAuth: masalah di cors origin, token tidak tersampaikan ke backend, dan destructing. Sekarang semua sudah clear dan dapat berjalan dengan normal)
         "mongodb/mongodb": "^1.16",
         "firebase/php-jwt": "^6.10",
         "vlucas/phpdotenv": "^5.6",

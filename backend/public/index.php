@@ -11,6 +11,11 @@ if (file_exists(__DIR__ . '/../.env')) {
     $dotenv->load();
 }
 
+// Suppress PHP warnings/notices from being output before JSON (they corrupt the response)
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
 // Always respond with JSON
 header('Content-Type: application/json');
 

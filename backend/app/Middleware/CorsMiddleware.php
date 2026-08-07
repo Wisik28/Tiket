@@ -6,9 +6,17 @@ class CorsMiddleware
 {
     public static function handle(callable $next)
     {
-        header("Access-Control-Allow-Origin: http://localhost:3000");
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        if (!empty($origin)) {
+            header("Access-Control-Allow-Origin: " . $origin);
+            header("Access-Control-Allow-Credentials: true");
+        } else {
+            header("Access-Control-Allow-Origin: *");
+        }
+
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-        header("Access-Control-Allow-Headers: Content-Type, Authorization");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin");
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             http_response_code(200);
@@ -18,3 +26,4 @@ class CorsMiddleware
         return $next();
     }
 }
+
