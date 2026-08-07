@@ -35,6 +35,38 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  const googleLogin = useCallback(async (credential) => {
+    setLoading(true)
+    try {
+      console.log('Sending Google credential to backend...')
+      const responseData = await authApi.googleLogin(credential) // consume API untuk login menggunakan google
+      console.log('Backend response:', responseData)
+
+      // Validasi response sebelum destructuring
+      if (!responseData || !responseData.data) {
+        console.error('Invalid response structure from backend:', responseData)
+        throw new Error('Server mengembalikan response yang tidak valid. Periksa backend.')
+      }
+
+      // inti/core proses destructing
+      const { token: newToken, user: userData } = responseData.data // ambil token dan user dari response data
+
+      // memeriksa apakah token dan user ditemukan sebelum menyimpan ke storage
+      if (!newToken || !userData) {
+        console.error('Missing token or user in response.data:', responseData.data)
+        throw new Error('Token atau data user tidak ditemukan dalam response server.')
+      }
+
+      sessionStorage.setItem('token', newToken) // simpan token ke storage
+      sessionStorage.setItem('user', JSON.stringify(userData)) // simpan user ke storage
+      setToken(newToken) // set token ke state
+      setUser(userData) // set user ke state
+      return userData
+    } finally {
+      setLoading(false) // set loading ke false
+    }
+  }, [])
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout()
@@ -62,6 +94,7 @@ export function AuthProvider({ children }) {
     loading,
     isAuthenticated,
     login,
+    googleLogin,
     logout,
     updateUser,
   }
