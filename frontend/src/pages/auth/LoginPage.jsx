@@ -203,7 +203,7 @@ export default function LoginPage() {
         <div className="login-form-panel">
           <div className="login-form-wrapper">
             {/* Mobile logo */}
-            <div className="login-mobile-logo">
+            {/* <div className="login-mobile-logo">
               <svg viewBox="0 0 48 48" fill="none">
                 <rect x="4" y="12" width="40" height="24" rx="4" stroke="currentColor" strokeWidth="2.5" />
                 <path d="M4 20h40" stroke="currentColor" strokeWidth="2.5" />
@@ -211,13 +211,11 @@ export default function LoginPage() {
                 <path d="M12 28h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
               <span>EventTicket</span>
-            </div>
+            </div> */}
 
             <div className="login-form-header">
-              <h2 className="login-form-header__title">Masuk ke Akun Anda</h2>
-              <p className="login-form-header__desc">
-                Satu akun untuk semua — baik sebagai <strong>User</strong> maupun <strong>Publisher</strong>
-              </p>
+              <img src="/assets/logo.png" alt="Logo" className="login-logo" />
+              <h6 className="login-form-header__title">Masuk ke Akun <span className="login-title-highlight">MyTiket</span> Anda</h6>            
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="login-form" id="login-form">
@@ -293,7 +291,7 @@ export default function LoginPage() {
               </div>
 
               {/* Info badge */}
-              <div className="login-role-info">
+              {/* <div className="login-role-info">
                 <div className="login-role-info__icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
@@ -304,7 +302,7 @@ export default function LoginPage() {
                 <p>
                   Sistem akan otomatis mengenali akun Anda sebagai <strong>User</strong> atau <strong>Publisher</strong>
                 </p>
-              </div>
+              </div> */}
 
               {/* Submit button */}
               <button

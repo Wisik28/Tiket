@@ -166,22 +166,14 @@ export default function RegisterPage() {
         {/* Right panel - register form */}
         <div className="login-form-panel">
           <div className="login-form-wrapper">
-            {/* Mobile logo */}
-            <div className="login-mobile-logo">
-              <svg viewBox="0 0 48 48" fill="none">
-                <rect x="4" y="12" width="40" height="24" rx="4" stroke="currentColor" strokeWidth="2.5" />
-                <path d="M4 20h40" stroke="currentColor" strokeWidth="2.5" />
-                <circle cx="36" cy="28" r="3" stroke="currentColor" strokeWidth="2" />
-                <path d="M12 28h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              <span>EventTicket</span>
-            </div>
+            {/* Mobile logo */}            
 
             <div className="login-form-header">
-              <h2 className="login-form-header__title">Buat Akun Baru</h2>
-              <p className="login-form-header__desc">
+              <img src="/assets/logo.png" alt="Logo" className="login-logo" />
+              <h6 className="login-form-header__title">Buat Akun Baru di <span className="login-title-highlight">MyTiket</span></h6>
+              {/* <p className="login-form-header__desc">
                 Mulai perjalanan Anda sebagai Pembeli atau Publisher
-              </p>
+              </p> */}
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="login-form" id="register-form">
@@ -202,6 +194,8 @@ export default function RegisterPage() {
                       <circle cx="12" cy="7" r="4" />
                     </svg>
                     Pembeli
+                    {/* tooltip pada button toggle switch role */}
+                    <span className="role-selector__tooltip">Pembeli jika Anda akan membeli tiket</span>
                   </button>
                   <button
                     type="button"
@@ -214,6 +208,8 @@ export default function RegisterPage() {
                       <line x1="12" y1="17" x2="12" y2="21" />
                     </svg>
                     Publisher
+                    {/* tooltip pada button toggle switch role */}
+                    <span className="role-selector__tooltip">Publisher jika Anda ingin menjual tiket</span>
                   </button>
                 </div>
               </div>
@@ -454,11 +450,7 @@ export default function RegisterPage() {
                   </span>
                 ) : (
                   <span className="login-submit-btn__text">
-                    Daftar Sekarang
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
+                    Daftar Sekarang                    
                   </span>
                 )}
               </button>

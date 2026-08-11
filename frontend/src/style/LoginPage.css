@@ -102,12 +102,23 @@
   margin-bottom: 2rem;
 }
 
+.login-logo {
+  display: block;
+  margin: 0 auto 0.1rem auto;
+  height: 100px;
+  object-fit: contain;
+}
+
 .login-form-header__title {
   font-size: 1.5rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.025em;
+}
+
+.login-title-highlight {
+  color: #4f46e5;
 }
 
 .login-form-header__desc {

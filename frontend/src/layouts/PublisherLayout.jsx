@@ -10,9 +10,10 @@ export default function PublisherLayout() {
   // Default sidebar terbuka (isCollapsed = false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isLogoutHovered, setIsLogoutHovered] = useState(false)
 
   // Status sidebar apakah sedang terbuka/membesar
-  const isExpanded = !isCollapsed || isHovered
+  const isExpanded = !isCollapsed || (isHovered && !isLogoutHovered)
 
   // Handler saat user mengklik menu navigasi di sidebar
   const handleNavClick = () => {
@@ -196,6 +197,9 @@ export default function PublisherLayout() {
           className={`border-t border-indigo-800 flex items-center ${
             !isExpanded ? 'p-4 justify-center flex-col gap-3' : 'p-6 justify-between'
           }`}
+          // setting agar ketika hanya button logout yang dihover maka side bar tidak expand
+          onMouseEnter={() => setIsLogoutHovered(true)} // untuk set ketika mouse masuk
+          onMouseLeave={() => setIsLogoutHovered(false)} // untuk set ketika mouse keluar
         >
           {isExpanded && (
             <div className="truncate pr-2">
