@@ -16,6 +16,7 @@
 }
 
 .role-selector__btn {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
@@ -38,10 +39,56 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
+.role-selector__tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background-color: #1e293b;
+  color: #ffffff;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  width: max-content;
+  max-width: 220px;
+  white-space: normal;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 50;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  pointer-events: none;
+}
+
+.role-selector__tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1e293b transparent transparent transparent;
+}
+
+.role-selector__btn:hover .role-selector__tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 .role-selector__btn--active {
   background: #4f46e5;
   color: #ffffff !important;
   box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+
+.role-selector__btn--active:hover {
+  background: #4338ca;
+  color: #ffffff !important;
 }
 
 .role-selector__icon {
