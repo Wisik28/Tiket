@@ -235,9 +235,21 @@ export default function PublisherDashboard() {
 
   // Filtered
   const filtered = useMemo(() => events.filter(e => {
-    const q = debouncedSearch.toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     const matchQ = !q || e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
     const matchC = filterCat === 'All' || e.category === filterCat
+    
+    // expired
+    // memeriksa event expired atau tidak dengan memanggil flag is_expired dari service backend
+    const today = new Date().toISOString().split('T')[0]
+    const isExpired = e.is_expired !== undefined
+      ? e.is_expired
+      : (e.date? e.date.substring(0, 10) < today : false)
+
+    if (!q && (isExpired)) {
+      return false
+    }
+    
     return matchQ && matchC
   }), [events, debouncedSearch, filterCat])
 
@@ -276,7 +288,6 @@ export default function PublisherDashboard() {
             <p className="pd-header__sub">Publikasikan event, atur tiket, dan pantau penjualan secara real-time.</p>
           </div>
       </header>
-
 
       {/* Ringkasan statistik */}
       <div className="pd-stats">
@@ -368,6 +379,11 @@ export default function PublisherDashboard() {
             const isHot = pct >= 75 && !isFull
             const catClr = CAT_COLORS[event.category] || '#64748b'
 
+            const today = new Date().toISOString().split('T')[0]
+            const isExpired = event.is_expired !== undefined
+              ? event.is_expired
+              : (event.date ? event.date.substring(0, 10) < today : false)
+
             return (
               <article className="pd-card" key={event.id}>
                 {/* Banner */}
@@ -385,6 +401,11 @@ export default function PublisherDashboard() {
                       {CAT_EMOJI[event.category]} {event.category}
                     </span>
                     <div className="pd-card__top-right">
+                      {isExpired && (
+                        <span className="pd-badge pd-badge--full" style={{ background: 'rgba(220, 38, 38, 0.85)', color: '#fff', borderColor: '#ef4444' }}>
+                          EXPIRED
+                        </span>
+                      )}
                       {isFull && <span className="pd-badge pd-badge--full">SOLD OUT</span>}
                       {isHot && <span className="pd-badge pd-badge--hot">HOT</span>}
                     </div>

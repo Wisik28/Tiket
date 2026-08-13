@@ -48,8 +48,8 @@ const EMPTY_FORM = {
 const loadMock = () => { const s = localStorage.getItem('pub_events'); return s ? JSON.parse(s) : null }
 const saveMock = (data) => localStorage.setItem('pub_events', JSON.stringify(data))
 
-// Function membuat event baru
-export default function CreateEvent() {
+// Function ubah event
+export default function UpdateEvent() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { id } = useParams()
@@ -64,14 +64,27 @@ export default function CreateEvent() {
     queryKey: ['pub-event', id],
     queryFn: async () => {
       if (state?.event) return state.event
-      const res = await axiosInstance.get(`/publisher/events/${id}`)
-      return res.data?.data
+      try {
+        const res = await axiosInstance.get(`/publisher/events/${id}`)
+        if (res.data?.success && res.data?.data) return res.data.data
+        return res.data?.data || res.data
+      } catch (err) {
+        const local = loadMock() || []
+        const found = local.find(e => String(e.id) === String(id))
+        if (found) return found
+        throw err
+      }
     },
     initialData: state?.event,
   })
 
   useEffect(() => {
     if (!window.L) return
+
+    const container = document.getElementById('map')
+    if (!container) return
+
+    let isMounted = true
 
     // Fix leaflet default icon path in React/Vite
     delete window.L.Icon.Default.prototype._getIconUrl
@@ -85,7 +98,7 @@ export default function CreateEvent() {
     const defaultLat = -7.7956
     const defaultLng = 110.3695
 
-    const map = window.L.map('map').setView([defaultLat, defaultLng], 13)
+    const map = window.L.map(container).setView([defaultLat, defaultLng], 13)
 
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -97,11 +110,11 @@ export default function CreateEvent() {
       try {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`)
         const data = await response.json()
-        if (data && data.display_name) {
+        if (isMounted && data && data.display_name) {
           setForm(p => ({ ...p, location: data.display_name }))
         }
       } catch (error) {
-        console.error('Error reverse geocoding:', error)
+        if (isMounted) console.error('Error reverse geocoding:', error)
       }
     }
 
@@ -120,7 +133,7 @@ export default function CreateEvent() {
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(initialEvent.location)}&limit=1`)
         .then(res => res.json())
         .then(data => {
-          if (data && data.length > 0) {
+          if (isMounted && data && data.length > 0) {
             const lat = parseFloat(data[0].lat)
             const lon = parseFloat(data[0].lon)
             map.setView([lat, lon], 14)
@@ -128,10 +141,13 @@ export default function CreateEvent() {
             setHasCenteredMap(true)
           }
         })
-        .catch(err => console.error('Geocoding error:', err))
+        .catch(err => {
+          if (isMounted) console.error('Geocoding error:', err)
+        })
     }
 
     return () => {
+      isMounted = false
       map.remove()
     }
   }, [initialEvent, hasCenteredMap])
@@ -218,6 +234,14 @@ export default function CreateEvent() {
       // Buat URL sementara (blob) agar gambar bisa dipreview langsung
       setField('imagePreview', URL.createObjectURL(file))
     }
+  }
+
+  // Function handler untuk batalkan/hapus gambar preview
+  const handleRemoveImage = (e) => {
+    e.stopPropagation()
+    setForm(p => ({ ...p, imageFile: null, imagePreview: '' }))
+    const input = document.getElementById('f-image-upload')
+    if (input) input.value = ''
   }
 
   const validate = () => {
@@ -413,7 +437,7 @@ export default function CreateEvent() {
                 style={{
                   border: '2px dashed #6366f1', 
                   borderRadius: '16px',
-                  padding: '40px 24px',
+                  padding: form.imagePreview ? '12px' : '40px 24px',
                   textAlign: 'center',
                   backgroundColor: '#f8fafc',
                   cursor: 'pointer',
@@ -423,38 +447,99 @@ export default function CreateEvent() {
                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
               >
-                {/* Ikon Upload */}
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px' }}>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-                
-                <h4 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '600', color: '#1e293b' }}>
-                  Upload Dokumen
-                </h4>
-                <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
-                  Format: JPG, JPEG, PNG 
-                </p>
-                {/* <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
-                  Drag & drop file di sini<br />atau
-                </p>                 */}
-                {/* Tombol palsu untuk visual */}
-                <span style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: '#3b82f6', 
-                  // backgroundImage: 'linear-gradient(to right, #6366f1, #06b6d)',
-                  color: 'white', 
-                  padding: '10px 20px', 
-                  borderRadius: '8px', 
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                  Pilih File dari Komputer
-                </span>
+                {!form.imagePreview ? (
+                  <>
+                    {/* Ikon Upload */}
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px' }}>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    
+                    <h4 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '600', color: '#1e293b' }}>
+                      Upload Dokumen
+                    </h4>
+                        
+                    <p style={{ margin: '0 0 8px', fontSize: '14px', color: '#64748b' }}>
+                      Drag & drop file di sini atau
+                    </p>
+                        
+                    <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b' }}>
+                      Format: JPG, JPEG, PNG
+                    </p>
+
+                    {/* Tombol palsu untuk visual */}
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      pointerEvents: 'none'
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                      Pilih File dari Komputer
+                    </span>
+                  </>
+                ) : (
+                  /* Preview Image saat file sudah di-attach */
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <img
+                      src={form.imagePreview}
+                      alt="Preview"
+                      style={{
+                        width: '100%',
+                        maxHeight: '300px',
+                        objectFit: 'cover',
+                        borderRadius: '12px',
+                        display: 'block'
+                      }}
+                      onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
+                    />
+                    {/* Tanda silang merah untuk membatalkan image */}
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      title="Batalkan Gambar"
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        backgroundColor: '#ef4444',
+                        color: '#ffffff',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        transition: 'transform 0.15s ease, background-color 0.15s ease',
+                        zIndex: 10
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dc2626'
+                        e.currentTarget.style.transform = 'scale(1.1)'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ef4444'
+                        e.currentTarget.style.transform = 'scale(1)'
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
                 {/* Input file asli yang disembunyikan */}
                 <input
                   id="f-image-upload"
@@ -465,20 +550,6 @@ export default function CreateEvent() {
                 />
               </div>
             </div>
-            {/* Preview Section */}
-            {(form.imagePreview || DEFAULT_IMAGES[form.category]) && (
-              <div className="pd-field pd-field--full">
-                <p className="pd-field__label">Preview</p>
-                <div className="pd-img-preview" style={{ marginTop: '8px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                  <img
-                    src={form.imagePreview || DEFAULT_IMAGES[form.category]}
-                    alt="preview"
-                    style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', display: 'block' }}
-                    onError={e => { e.target.src = DEFAULT_IMAGES.Other }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </section>
         
