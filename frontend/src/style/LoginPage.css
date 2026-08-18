@@ -442,3 +442,132 @@
     font-size: 1.35rem;
   }
 }
+
+/* --- reCAPTCHA Slicing UI (Exact Replica) --- */
+.recaptcha-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f9f9f9;
+  border: 1px solid #d3d3d3;
+  border-radius: 3px;
+  padding: 10px 12px 10px 14px;
+  width: 100%;
+  max-width: 304px;
+  height: 76px;
+  box-sizing: border-box;
+  box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.08);
+  user-select: none;
+  margin: 0.25rem auto 0 auto;
+  transition: all 0.2s ease;
+}
+
+.recaptcha-box--verified {
+  border-color: #d3d3d3;
+  background: #f9f9f9;
+}
+
+.recaptcha-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.recaptcha-checkbox-wrapper {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recaptcha-checkbox {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #c1c1c1;
+  border-radius: 2px;
+  background: #ffffff;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.recaptcha-left:hover .recaptcha-checkbox {
+  border-color: #b2b2b2;
+}
+
+.recaptcha-checkbox--checked {
+  border-color: #0f9d58 !important;
+  background: #ffffff !important;
+}
+
+.recaptcha-checkmark {
+  color: #0f9d58;
+  width: 22px;
+  height: 22px;
+}
+
+.recaptcha-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #4285f4;
+  border-radius: 50%;
+  animation: recaptchaSpinner 0.7s linear infinite;
+}
+
+@keyframes recaptchaSpinner {
+  to { transform: rotate(360deg); }
+}
+
+.recaptcha-label {
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #222222;
+  letter-spacing: normal;
+}
+
+.recaptcha-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.recaptcha-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.recaptcha-brand-text {
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #555555;
+  margin-top: 1px;
+}
+
+.recaptcha-links {
+  display: flex;
+  gap: 3px;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 8px;
+  color: #555555;
+}
+
+.recaptcha-links a {
+  color: #555555;
+  text-decoration: none;
+}
+
+.recaptcha-links a:hover {
+  text-decoration: underline;
+}
