@@ -8,7 +8,7 @@ class CorsMiddleware
     {
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-        if (!empty($origin)) {
+        if (!empty($origin)) {  
             header("Access-Control-Allow-Origin: " . $origin);
             header("Access-Control-Allow-Credentials: true");
         } else {

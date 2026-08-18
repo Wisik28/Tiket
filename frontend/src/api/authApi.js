@@ -14,9 +14,10 @@ export const authApi = {
     return response.data
   },
   // function auth menggunakan OAuth google account
-  googleLogin: async (credential) => {
+  googleLogin: async (credential, options = {}) => {
     console.log('authApi.googleLogin - sending credential to /auth/google')
-    const response = await axiosInstance.post('/auth/google', { credential }) // consume API untuk 
+    // menggunakan options untuk cek ke database apakah akun sudah terdaftar atau belum
+    const response = await axiosInstance.post('/auth/google', { credential, ...options }) // consume API untuk 
     console.log('authApi.googleLogin - raw response status:', response.status)
     console.log('authApi.googleLogin - raw response data:', response.data)
     console.log('authApi.googleLogin - data type:', typeof response.data)

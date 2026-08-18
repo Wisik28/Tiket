@@ -35,11 +35,11 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const googleLogin = useCallback(async (credential) => {
+  const googleLogin = useCallback(async (credential, options = {}) => {
     setLoading(true)
     try {
       console.log('Sending Google credential to backend...')
-      const responseData = await authApi.googleLogin(credential) // consume API untuk login menggunakan google
+      const responseData = await authApi.googleLogin(credential, options) // consume API untuk login menggunakan google
       console.log('Backend response:', responseData)
 
       // Validasi response sebelum destructuring

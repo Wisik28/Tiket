@@ -12,10 +12,26 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password minimal 6 karakter'),
 })
 
+// Function utama login page
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login, googleLogin, loading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const [captchaVerified, setCaptchaVerified] = useState(false)
+  const [captchaLoading, setCaptchaLoading] = useState(false)
+
+  // handler untuk toggle button (checkbox)
+  const handleCaptchaToggle = () => {
+    if (captchaVerified) {
+      setCaptchaVerified(false)
+    } else {
+      setCaptchaLoading(true)
+      setTimeout(() => {
+        setCaptchaLoading(false)
+        setCaptchaVerified(true)
+      }, 500)
+    }
+  }
 
   const {
     register,
@@ -33,7 +49,7 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (credential) => {
     try {
       console.log('Google Credential Token received:', credential)
-      const userData = await googleLogin(credential)
+      const userData = await googleLogin(credential, { is_register: false })
       toast.success(`Selamat datang, ${userData.name}!`)
       if (userData.role === 'publisher') {
         navigate('/publisher/dashboard', { replace: true })
@@ -44,7 +60,19 @@ export default function LoginPage() {
       console.error('Google login error:', error)
       const message =
         error.response?.data?.message || error.message || 'Gagal masuk dengan Google. Coba lagi'
+      
       toast.error(message)
+
+      // Jika akun belum pernah terdaftar, alihkan pengguna ke halaman registrasi setelah toast
+      if (
+        error.response?.status === 404 ||
+        message.includes('belum didaftarkan') ||
+        message.includes('registrasi')
+      ) {
+        setTimeout(() => {
+          navigate('/register')
+        }, 2500)
+      }
     }
   }
 
@@ -108,7 +136,13 @@ export default function LoginPage() {
     }
   }
 
+  // handler untuk login manual tanpa OAuth
   const onSubmit = async (formData) => {
+    if (!captchaVerified) {
+      toast.error('Silakan verifikasi reCAPTCHA terlebih dahulu')
+      return
+    }
+
     try {
       // Kirim email & password ke API, backend yang menentukan role
       const userData = await login({
@@ -202,16 +236,6 @@ export default function LoginPage() {
         {/* Right panel - login form */}
         <div className="login-form-panel">
           <div className="login-form-wrapper">
-            {/* Mobile logo */}
-            {/* <div className="login-mobile-logo">
-              <svg viewBox="0 0 48 48" fill="none">
-                <rect x="4" y="12" width="40" height="24" rx="4" stroke="currentColor" strokeWidth="2.5" />
-                <path d="M4 20h40" stroke="currentColor" strokeWidth="2.5" />
-                <circle cx="36" cy="28" r="3" stroke="currentColor" strokeWidth="2" />
-                <path d="M12 28h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              <span>EventTicket</span>
-            </div> */}
 
             <div className="login-form-header">
               <img src="/assets/logo.png" alt="Logo" className="login-logo" />
@@ -290,19 +314,41 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {/* Info badge */}
-              {/* <div className="login-role-info">
-                <div className="login-role-info__icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
-                  </svg>
+              {/* reCAPTCHA Slicing UI (Exact Replica) */}
+              <div className={`recaptcha-box ${captchaVerified ? 'recaptcha-box--verified' : ''}`}>
+                <div 
+                  className="recaptcha-left" 
+                  onClick={handleCaptchaToggle}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCaptchaToggle()}
+                >
+                  <div className="recaptcha-checkbox-wrapper">
+                    {captchaLoading ? (
+                      <div className="recaptcha-spinner" />
+                    ) : (
+                      <div className={`recaptcha-checkbox ${captchaVerified ? 'recaptcha-checkbox--checked' : ''}`}>
+                        {captchaVerified && (
+                          <svg className="recaptcha-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <span className="recaptcha-label">I'm not a robot</span>
                 </div>
-                <p>
-                  Sistem akan otomatis mengenali akun Anda sebagai <strong>User</strong> atau <strong>Publisher</strong>
-                </p>
-              </div> */}
+
+                <div className="recaptcha-brand">
+                  <img src="/assets/recaptcha.png" alt="reCAPTCHA" className="recaptcha-logo-img" />
+                  <span className="recaptcha-brand-text">reCAPTCHA</span>
+                  <div className="recaptcha-links">
+                    <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy</a>
+                    <span>-</span>
+                    <a href="#terms" onClick={(e) => e.preventDefault()}>Terms</a>
+                  </div>
+                </div>
+              </div>
 
               {/* Submit button */}
               <button
@@ -321,10 +367,6 @@ export default function LoginPage() {
                 ) : (
                   <span className="login-submit-btn__text">
                     Masuk
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
                   </span>
                 )}
               </button>
@@ -337,6 +379,7 @@ export default function LoginPage() {
               <div className="login-divider__line" />
             </div>
 
+            {/* OAuth masuk dengan google account */}
             {/* Container Google Login dengan Transparent Overlay untuk menangkap direct user gesture */}
             <div style={{ position: 'relative', width: '100%' }}>
               <button

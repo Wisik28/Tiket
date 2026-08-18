@@ -140,15 +140,25 @@ class AuthService
 
         $user = User::findByEmail($email);
         
+        $isRegister = $data['is_register'] ?? false;
+
         // validasi untuk login sebagai user atau publisher menggunakan OAuth
         if (!$user) {
+            if (!$isRegister) {
+                throw new \RuntimeException('Akun Anda belum didaftarkan, silahkan melakukan registrasi', 404);
+            }
+
+            $role = !empty($data['role']) && in_array(strtolower($data['role']), ['user', 'publisher']) ? strtolower($data['role']) : 'user';
             $newUserData = [
                 'name' => $name,
                 'email' => $email,
-                'role' => 'user',
+                'role' => $role,
                 'google_id' => $googleId,
                 'avatar_url' => $avatarUrl
             ];
+            if (!empty($data['company_name'])) {
+                $newUserData['company_name'] = $data['company_name'];
+            }
             $user = User::create($newUserData);
         } else {                        
             if (!isset($user['google_id'])) {

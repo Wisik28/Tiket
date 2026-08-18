@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import '../../style/RegisterPage.css'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
+import useAuth from '../../hooks/useAuth'
 import { authApi } from '../../api/authApi'
 
 // Vaalidasi input field menggunakan zod
@@ -52,8 +53,24 @@ const registerSchema = z
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const { googleLogin } = useAuth()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [captchaVerified, setCaptchaVerified] = useState(false)
+  const [captchaLoading, setCaptchaLoading] = useState(false)
+
+  // handler toggle button recaptcha (checkbox)
+  const handleCaptchaToggle = () => {
+    if (captchaVerified) {
+      setCaptchaVerified(false)
+    } else {
+      setCaptchaLoading(true)
+      setTimeout(() => {
+        setCaptchaLoading(false)
+        setCaptchaVerified(true)
+      }, 500)
+    }
+  }
 
   const {
     register,
@@ -78,7 +95,95 @@ export default function RegisterPage() {
   
   const selectedRole = watch('role')
 
+  // handler jika pendaftaran menggunakan google berhasil
+  const handleGoogleSuccess = async (credential) => {
+    try {
+      console.log('Google Credential Token received:', credential)
+      const userData = await googleLogin(credential, { 
+        is_register: true, 
+        role: selectedRole 
+      })
+      toast.success(`Registrasi berhasil! Selamat datang, ${userData.name}!`)
+      if (userData.role === 'publisher') {
+        navigate('/publisher/dashboard', { replace: true })
+      } else {
+        navigate('/user/dashboard', { replace: true })
+      }
+    } catch (error) {
+      console.error('Google register error:', error)
+      const message =
+        error.response?.data?.message || error.message || 'Gagal mendaftar dengan akun Google. Coba lagi'
+      toast.error(message)
+    }
+  }
+
+  // useeffect untuk menginisialisasi google sign in
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+    // handler jika google sign in berhasil
+    const initializeGoogle = () => {
+      if (window.google?.accounts?.id && clientId) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            if (response.credential) {
+              handleGoogleSuccess(response.credential)
+            }
+          },
+        })
+
+        const btnDiv = document.getElementById('googleBtnContainer')
+        if (btnDiv) {
+          btnDiv.innerHTML = ''
+          window.google.accounts.id.renderButton(btnDiv, {
+            theme: 'outline',
+            size: 'large',
+            width: '360',
+            text: 'continue_with',
+            shape: 'rectangular',
+          })
+        }
+      }
+    }
+
+    // cek apakah sudah ada script google sign in
+    if (!document.getElementById('google-gsi-script')) {
+      const script = document.createElement('script')
+      script.id = 'google-gsi-script'
+      script.src = 'https://accounts.google.com/gsi/client'
+      script.async = true
+      script.defer = true
+      script.onload = initializeGoogle
+      document.body.appendChild(script)
+    } else {
+      initializeGoogle()
+    }
+  }, [])
+
+  // handler untuk button ketika diklik (fallback jika iframe tidak tertekan)
+  const handleGoogleButtonClick = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    if (!clientId) {
+      toast.error('VITE_GOOGLE_CLIENT_ID belum dikonfigurasi di .env')
+      return
+    }
+
+    // prompt untuk google sign in
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.prompt()
+    } else {
+      toast.error('Google SDK sedang dimuat, silakan coba beberapa saat lagi.')
+    }
+  }
+
+  // handler untuk register manual tanpa OAuth
   const onSubmit = async (formData) => {
+    if (!captchaVerified) {
+      toast.error('Silakan verifikasi reCAPTCHA terlebih dahulu')
+      return
+    }
+
     setLoading(true)
     try {    
       const payload = {
@@ -434,6 +539,42 @@ export default function RegisterPage() {
                 {errors.password && <p className="login-field__error">{errors.password.message}</p>}
               </div>
 
+              {/* reCAPTCHA Slicing UI (Exact Replica) */}
+              <div className={`recaptcha-box ${captchaVerified ? 'recaptcha-box--verified' : ''}`}>
+                <div 
+                  className="recaptcha-left" 
+                  onClick={handleCaptchaToggle}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCaptchaToggle()}
+                >
+                  <div className="recaptcha-checkbox-wrapper">
+                    {captchaLoading ? (
+                      <div className="recaptcha-spinner" />
+                    ) : (
+                      <div className={`recaptcha-checkbox ${captchaVerified ? 'recaptcha-checkbox--checked' : ''}`}>
+                        {captchaVerified && (
+                          <svg className="recaptcha-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <span className="recaptcha-label">I'm not a robot</span>
+                </div>
+
+                <div className="recaptcha-brand">
+                  <img src="/assets/recaptcha.png" alt="reCAPTCHA" className="recaptcha-logo-img" />
+                  <span className="recaptcha-brand-text">reCAPTCHA</span>
+                  <div className="recaptcha-links">
+                    <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy</a>
+                    <span>-</span>
+                    <a href="#terms" onClick={(e) => e.preventDefault()}>Terms</a>
+                  </div>
+                </div>
+              </div>
+
               {/* Submit button */}
               <button
                 type="submit"
@@ -450,11 +591,53 @@ export default function RegisterPage() {
                   </span>
                 ) : (
                   <span className="login-submit-btn__text">
-                    Daftar Sekarang                    
+                    Daftar Sekarang
                   </span>
                 )}
               </button>
             </form>
+
+            {/* Divider */}
+            <div className="login-divider">
+              <div className="login-divider__line" />
+              <span className="login-divider__text">atau</span>
+              <div className="login-divider__line" />
+            </div>
+
+            {/* OAuth masuk dengan google account */}
+            {/* Container Google Login dengan Transparent Overlay untuk menangkap direct user gesture */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              <button
+                type="button"
+                onClick={handleGoogleButtonClick}
+                className="login-google-btn"
+                id="google-login-btn"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Daftar Dengan Akun Google</span>
+              </button>
+
+              {/* Overlay Google GSI SDK iframe */}
+              <div
+                id="googleBtnContainer"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: 0.001,
+                  zIndex: 10,
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                }}
+              ></div>
+            </div>
 
             {/* Login link */}
             <p className="login-register-link">
