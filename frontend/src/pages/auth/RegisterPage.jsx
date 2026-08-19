@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import '../../style/RegisterPage.css'
 import { useForm } from 'react-hook-form'
@@ -56,21 +56,65 @@ export default function RegisterPage() {
   const { googleLogin } = useAuth()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [captchaVerified, setCaptchaVerified] = useState(false)
-  const [captchaLoading, setCaptchaLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState(null)
+  const recaptchaRef = useRef(null)
 
-  // handler toggle button recaptcha (checkbox)
-  const handleCaptchaToggle = () => {
-    if (captchaVerified) {
-      setCaptchaVerified(false)
-    } else {
-      setCaptchaLoading(true)
-      setTimeout(() => {
-        setCaptchaLoading(false)
-        setCaptchaVerified(true)
-      }, 500)
+  // Load and render Google reCAPTCHA
+  useEffect(() => {
+    let widgetId = null
+
+    const renderCaptcha = () => {
+      if (!recaptchaRef.current) return
+      if (recaptchaRef.current.children.length > 0) return
+
+      try {
+        widgetId = window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+          callback: (token) => setCaptchaToken(token),
+          'expired-callback': () => setCaptchaToken(null),
+          'error-callback': () => setCaptchaToken(null),
+        })
+      } catch (error) {
+        console.error('Error rendering reCAPTCHA:', error)
+      }
     }
-  }
+
+    const initCaptcha = () => {
+      if (window.grecaptcha && window.grecaptcha.ready) {
+        window.grecaptcha.ready(renderCaptcha)
+      } else {
+        // Script not yet loaded, keep checking
+        const interval = setInterval(() => {
+          if (window.grecaptcha && window.grecaptcha.ready) {
+            clearInterval(interval)
+            window.grecaptcha.ready(renderCaptcha)
+          }
+        }, 100)
+        // Cleanup interval after 10s to avoid memory leak
+        setTimeout(() => clearInterval(interval), 10000)
+      }
+    }
+
+    const scriptId = 'google-recaptcha-script'
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://www.google.com/recaptcha/api.js?render=explicit'
+      script.async = true
+      script.defer = true
+      document.body.appendChild(script)
+    }
+
+    // Init after component mount
+    initCaptcha()
+
+    return () => {
+      // Cleanup: reset the widget if it was rendered
+      if (widgetId !== null && window.grecaptcha && window.grecaptcha.reset) {
+        try { window.grecaptcha.reset(widgetId) } catch (_) {}
+      }
+    }
+  }, [])
 
   const {
     register,
@@ -179,7 +223,7 @@ export default function RegisterPage() {
 
   // handler untuk register manual tanpa OAuth
   const onSubmit = async (formData) => {
-    if (!captchaVerified) {
+    if (!captchaToken) {
       toast.error('Silakan verifikasi reCAPTCHA terlebih dahulu')
       return
     }
@@ -195,6 +239,7 @@ export default function RegisterPage() {
         role: formData.role,
         address: formData.address,        
         mobile: formData.mobile,
+        captcha_token: captchaToken,
         ...(formData.role === 'publisher' ? { company_name: formData.company_name } : {}),
       }
 
@@ -539,40 +584,9 @@ export default function RegisterPage() {
                 {errors.password && <p className="login-field__error">{errors.password.message}</p>}
               </div>
 
-              {/* reCAPTCHA Slicing UI (Exact Replica) */}
-              <div className={`recaptcha-box ${captchaVerified ? 'recaptcha-box--verified' : ''}`}>
-                <div 
-                  className="recaptcha-left" 
-                  onClick={handleCaptchaToggle}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCaptchaToggle()}
-                >
-                  <div className="recaptcha-checkbox-wrapper">
-                    {captchaLoading ? (
-                      <div className="recaptcha-spinner" />
-                    ) : (
-                      <div className={`recaptcha-checkbox ${captchaVerified ? 'recaptcha-checkbox--checked' : ''}`}>
-                        {captchaVerified && (
-                          <svg className="recaptcha-checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <span className="recaptcha-label">I'm not a robot</span>
-                </div>
-
-                <div className="recaptcha-brand">
-                  <img src="/assets/recaptcha.png" alt="reCAPTCHA" className="recaptcha-logo-img" />
-                  <span className="recaptcha-brand-text">reCAPTCHA</span>
-                  <div className="recaptcha-links">
-                    <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy</a>
-                    <span>-</span>
-                    <a href="#terms" onClick={(e) => e.preventDefault()}>Terms</a>
-                  </div>
-                </div>
+              {/* Google reCAPTCHA v2 Checkbox */}
+              <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
+                <div ref={recaptchaRef}></div>
               </div>
 
               {/* Submit button */}

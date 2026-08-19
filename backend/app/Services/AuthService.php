@@ -10,6 +10,14 @@ class AuthService
 {
     public function register(array $data)
     {
+        // 0. Validasi reCAPTCHA
+        if (empty($data['captcha_token'])) {
+            throw new \InvalidArgumentException('reCAPTCHA verification is required.', 400);
+        }
+        if (!$this->verifyRecaptcha($data['captcha_token'])) {
+            throw new \InvalidArgumentException('reCAPTCHA verification failed.', 400);
+        }
+
         // 1. Validasi field wajib
         if (empty($data['name']) || empty($data['email']) || empty($data['password']) || empty($data['role']) || empty($data['address']) || empty($data['mobile'])) {
             throw new \InvalidArgumentException('Name, email, password, role, address, and mobile are required.', 400);
@@ -56,6 +64,16 @@ class AuthService
 
     public function login(array $data)
     {
+        // 0. Validasi reCAPTCHA
+        $captchaToken = $data['captcha_token'] ?? '';
+        error_log('[LOGIN] captcha_token received. Length: ' . strlen($captchaToken) . ' | Preview: ' . substr($captchaToken, 0, 30));
+        if (empty($captchaToken)) {
+            throw new \InvalidArgumentException('reCAPTCHA verification is required.', 400);
+        }
+        if (!$this->verifyRecaptcha($captchaToken)) {
+            throw new \InvalidArgumentException('reCAPTCHA verification failed.', 400);
+        }
+
         // 1. Validasi input
         if (empty($data['email']) || empty($data['password'])) {
             throw new \InvalidArgumentException('Email and password are required.', 400);
@@ -259,5 +277,75 @@ class AuthService
         }
         
         return $payload;
+    }
+
+    /**
+     * Verifikasi Google reCAPTCHA token.
+     * 
+     * Di environment development: skip API call ke Google, cukup cek token ada.
+     * Di environment production: lakukan full verifikasi ke Google siteverify API.
+     * 
+     * @param string $token Token reCAPTCHA dari frontend
+     * @return bool True jika valid
+     */
+    private function verifyRecaptcha(string $token): bool
+    {
+        $appEnv = $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?? 'development';
+        $isDev  = in_array(strtolower($appEnv), ['development', 'local', 'dev']);
+
+        // Di development: skip verifikasi API Google, cukup pastikan token tidak kosong
+        // (Widget tetap muncul di frontend, tapi tidak ada external API call)
+        if ($isDev) {
+            error_log('[reCAPTCHA] Development mode: skipping API verification. Token length: ' . strlen($token));
+            return strlen($token) > 0;
+        }
+
+        // Production: full verification ke Google
+        $secretKey = $_ENV['RECAPTCHA_SECRET_KEY'] ?? getenv('RECAPTCHA_SECRET_KEY') ?? '';
+        if (empty($secretKey)) {
+            error_log('[reCAPTCHA] RECAPTCHA_SECRET_KEY is not set!');
+            return false;
+        }
+
+        $url      = 'https://www.google.com/recaptcha/api/siteverify';
+        $postData = http_build_query([
+            'secret'   => $secretKey,
+            'response' => $token,
+        ]);
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $postData,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_TIMEOUT        => 10,
+        ]);
+
+        $response  = curl_exec($ch);
+        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            error_log('[reCAPTCHA] cURL error: ' . $curlError);
+            return false;
+        }
+
+        if ($httpCode !== 200) {
+            error_log('[reCAPTCHA] HTTP error: ' . $httpCode);
+            return false;
+        }
+
+        $payload = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('[reCAPTCHA] JSON parse error.');
+            return false;
+        }
+
+        error_log('[reCAPTCHA] Verify result: ' . json_encode($payload));
+        return isset($payload['success']) && $payload['success'] === true;
     }
 }
